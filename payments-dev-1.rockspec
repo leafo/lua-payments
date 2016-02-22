@@ -16,6 +16,7 @@ dependencies = {
   "lua-cjson",
   "luasocket",
   "luasec",
+  "lapis", -- for encode_query_string
 }
 
 build = {

@@ -1,3 +1,4 @@
+
 -- Paypal Adaptive Payments (Classic API):
 -- https://developer.paypal.com/docs/classic/api/#ap
 class PayPalAdaptive extends require "payments.base_client"
