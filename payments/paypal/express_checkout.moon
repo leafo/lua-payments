@@ -41,7 +41,7 @@ class PayPalExpressCheckout extends require "payments.base_client"
 
     urls = @opts.sandbox and @@urls.sandbox or @@urls.live
     @api_url = @opts.api_url or urls.signature
-    @checkout_url = @opts.checkout_url or urls.checkout
+    @checkout_url_prefix = @opts.checkout_url or urls.checkout
 
   _method: (name, params) =>
     params.METHOD = name
@@ -105,8 +105,8 @@ class PayPalExpressCheckout extends require "payments.base_client"
       PAYMENTREQUEST_0_AMT: amount
     }, upper_keys opts
 
-  pay_url: (token) =>
-    "#{@checkout_url}?cmd=_express-checkout&token=#{token}&useraction=commit"
+  checkout_url: (token) =>
+    "#{@checkout_url_prefix}?cmd=_express-checkout&token=#{token}&useraction=commit"
 
   format_price: (...) => format_price ...
 

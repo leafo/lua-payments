@@ -78,8 +78,8 @@ do
         PAYMENTREQUEST_0_AMT = amount
       }, upper_keys(opts)))
     end,
-    pay_url = function(self, token)
-      return tostring(self.checkout_url) .. "?cmd=_express-checkout&token=" .. tostring(token) .. "&useraction=commit"
+    checkout_url = function(self, token)
+      return tostring(self.checkout_url_prefix) .. "?cmd=_express-checkout&token=" .. tostring(token) .. "&useraction=commit"
     end,
     format_price = function(self, ...)
       return format_price(...)
@@ -96,7 +96,7 @@ do
       assert(self.__class.auth_shape(self.auth))
       local urls = self.opts.sandbox and self.__class.urls.sandbox or self.__class.urls.live
       self.api_url = self.opts.api_url or urls.signature
-      self.checkout_url = self.opts.checkout_url or urls.checkout
+      self.checkout_url_prefix = self.opts.checkout_url or urls.checkout
     end,
     __base = _base_0,
     __name = "PayPalExpressCheckout",
