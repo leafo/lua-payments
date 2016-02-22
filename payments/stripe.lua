@@ -7,12 +7,10 @@ do
   encode_query_string, parse_query_string = _obj_0.encode_query_string, _obj_0.parse_query_string
 end
 local encode_base64
-do
-  local _obj_0 = require("lapis.util.encoding")
-  encode_base64 = _obj_0.encode_base64
-end
+encode_base64 = require("lapis.util.encoding").encode_base64
 local Stripe
 do
+  local _class_0
   local _base_0 = {
     api_url = "https://api.stripe.com/v1/",
     connect_url = function(self)
@@ -63,7 +61,7 @@ do
     end
   }
   _base_0.__index = _base_0
-  local _class_0 = setmetatable({
+  _class_0 = setmetatable({
     __init = function(self, client_id, client_secret)
       self.client_id, self.client_secret = client_id, client_secret
     end,

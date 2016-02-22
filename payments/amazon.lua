@@ -55,6 +55,7 @@ url_encode = function(str)
 end
 local AmazonFPS
 do
+  local _class_0
   local find_node, filter_nodes, node_value, extract_errors
   local _base_0 = {
     override_ipn = nil,
@@ -239,7 +240,7 @@ do
     end
   }
   _base_0.__index = _base_0
-  local _class_0 = setmetatable({
+  _class_0 = setmetatable({
     __init = function(self, access_key, secret, opts)
       self.access_key, self.secret = access_key, secret
       self.endpoint = self.__class.sandbox_endpoint
