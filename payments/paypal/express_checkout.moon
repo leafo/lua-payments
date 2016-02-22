@@ -11,14 +11,15 @@ ltn12 = require "ltn12"
 -- https://developer.paypal.com/docs/classic/api/#ec
 class PayPalExpressCheckout extends require "payments.base_client"
   @urls: {
-    checkout: "https://www.sandbox.paypal.com/cgi-bin/webscr"
 
     live: {
+      checkout: "https://www.paypal.com/cgi-bin/webscr"
       certificate: "https://api.paypal.com/nvp"
       signature: "https://api-3t.paypal.com/nvp"
     }
 
     sandbox: {
+      checkout: "https://www.sandbox.paypal.com/cgi-bin/webscr"
       certificate: "https://api.sandbox.paypal.com/nvp"
       signature: "https://api-3t.sandbox.paypal.com/nvp"
     }
@@ -38,10 +39,9 @@ class PayPalExpressCheckout extends require "payments.base_client"
 
     assert @@.auth_shape @auth
 
-    @api_url = @opts.api_url or if @opts.sandbox
-      @@urls.sandbox.signature
-    else
-      @@urls.live.signature
+    urls = @opts.sandbox and @@urls.sandbox or @@urls.live
+    @api_url = @opts.api_url or urls.signature
+    @checkout_url = @opts.checkout_url or urls.checkout
 
   _method: (name, params) =>
     params.METHOD = name
@@ -70,7 +70,6 @@ class PayPalExpressCheckout extends require "payments.base_client"
     assert success, code
 
     text = concat out
-    print text
     res = parse_query_string(text) or text
     strip_numeric(res) if type(res) == "table"
     @_extract_error res, res_headers
@@ -90,11 +89,9 @@ class PayPalExpressCheckout extends require "payments.base_client"
     @_method "TransactionSearch", upper_keys opts or {}
 
   -- amount: 0.00
-  set_express_checkout: (return_url, cancel_url, opts) =>
-    @_method "SetExpressCheckout", extend {
-      RETURNURL: return_url
-      CANCELURL: cancel_url
-    }, upper_keys opts
+  set_express_checkout: (opts) =>
+    opts = upper_keys opts
+    @_method "SetExpressCheckout", opts
 
   get_express_checkout_details: (token) =>
     @_method "GetExpressCheckoutDetails", TOKEN: token
@@ -109,7 +106,7 @@ class PayPalExpressCheckout extends require "payments.base_client"
     }, upper_keys opts
 
   pay_url: (token) =>
-    "#{@@urls.checkout}?cmd=_express-checkout&token=#{token}&useraction=commit"
+    "#{@checkout_url}?cmd=_express-checkout&token=#{token}&useraction=commit"
 
   format_price: (...) => format_price ...
 
