@@ -108,3 +108,7 @@ describe "paypal", ->
           "receiverList.receiver(1).email": "you@example.com",
         }
 
+      it "creates checkout url", ->
+        assert.same "https://www.sandbox.paypal.com/webscr?cmd=_ap-payment&paykey=hello-world", paypal\checkout_url "hello-world"
+
+
