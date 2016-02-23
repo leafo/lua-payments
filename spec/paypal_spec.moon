@@ -28,70 +28,83 @@ describe "paypal", ->
     before_each ->
       http_fn, http_requests = make_http!
 
-    it "makes pay request", ->
-      import PayPalAdaptive from require "payments.paypal"
-      paypal = PayPalAdaptive {
-        sandbox: true
-        application_id: "APP-1234HELLOWORLD"
-        auth: {
-          USER: "me_1212121.leafo.net"
-          PWD: "123456789"
-          SIGNATURE: "AABBBC_CCZZZXXX"
-        }
-      }
-      paypal.http = http_fn
+    describe "with client", ->
+      local paypal
 
-      paypal\pay {
-        cancelUrl: "http://leafo.net/cancel"
-        returnUrl: "http://leafo.net/return"
-        currencyCode: "EUR"
-        receivers: {
-          {
-            email: "me@example.com"
-            amount: "5.50"
-            primary: true
-          },
-          {
-            email: "you@example.com"
-            amount: "1.50"
+      assert_request = (request, req_shape, params_shape) ->
+        test_req_shape = {
+          headers: types.shape {
+            Host: "svcs.sandbox.paypal.com"
+            "X-PAYPAL-RESPONSE-DATA-FORMAT": "NV"
+            "X-PAYPAL-APPLICATION-ID": "APP-1234HELLOWORLD"
+            "X-PAYPAL-SECURITY-USERID": "me_1212121.leafo.net"
+            "X-PAYPAL-SECURITY-SIGNATURE": "AABBBC_CCZZZXXX"
+            "X-PAYPAL-SECURITY-PASSWORD": "123456789"
+            "Content-length": types.number
+            "X-PAYPAL-REQUEST-DATA-FORMAT": "NV"
           }
         }
-      }
 
-      assert.same 1, #http_requests
-      request = http_requests[1]
+        if req_shape
+          for k,v in pairs req_shape
+            test_req_shape[k] = v
 
-      assert_shape request, types.shape {
-        method: "POST"
-        url: "https://svcs.sandbox.paypal.com/AdaptivePayments/Pay"
-        headers: types.shape {
-          Host: "svcs.sandbox.paypal.com"
-          "X-PAYPAL-RESPONSE-DATA-FORMAT": "NV"
-          "X-PAYPAL-APPLICATION-ID": "APP-1234HELLOWORLD"
-          "X-PAYPAL-SECURITY-USERID": "me_1212121.leafo.net"
-          "X-PAYPAL-SECURITY-SIGNATURE": "AABBBC_CCZZZXXX"
-          "X-PAYPAL-SECURITY-PASSWORD": "123456789"
-          "Content-length": types.number
-          "X-PAYPAL-REQUEST-DATA-FORMAT": "NV"
+        assert_shape request, types.shape test_req_shape, open: true
 
+        if params_shape
+          params = extract_params request.source!
+          assert_shape params, params_shape
+
+      before_each ->
+        import PayPalAdaptive from require "payments.paypal"
+        paypal = PayPalAdaptive {
+          sandbox: true
+          application_id: "APP-1234HELLOWORLD"
+          auth: {
+            USER: "me_1212121.leafo.net"
+            PWD: "123456789"
+            SIGNATURE: "AABBBC_CCZZZXXX"
+          }
         }
-      }, open: true
+        paypal.http = http_fn
 
-      params = extract_params request.source!
+      it "makes pay request", ->
+        paypal\pay {
+          cancelUrl: "http://leafo.net/cancel"
+          returnUrl: "http://leafo.net/return"
+          currencyCode: "EUR"
+          receivers: {
+            {
+              email: "me@example.com"
+              amount: "5.50"
+              primary: true
+            },
+            {
+              email: "you@example.com"
+              amount: "1.50"
+            }
+          }
+        }
 
-      assert_shape params, types.shape {
-        actionType: "PAY"
-        feesPayer: "PRIMARYRECEIVER"
-        currencyCode: "EUR"
-        cancelUrl: "http://leafo.net/cancel"
-        returnUrl: "http://leafo.net/return"
+        assert.same 1, #http_requests
+        request = http_requests[1]
 
-        "requestEnvelope.errorLanguage": "en_US"
-        "clientDetails.applicationId": "APP-1234HELLOWORLD",
-        "receiverList.receiver(0).amount": "5.50",
-        "receiverList.receiver(0).email": "me@example.com",
-        "receiverList.receiver(0).primary": "true",
-        "receiverList.receiver(1).amount": "1.50"
-        "receiverList.receiver(1).email": "you@example.com",
-      }
+        assert_request request, {
+          method: "POST"
+          url: "https://svcs.sandbox.paypal.com/AdaptivePayments/Pay"
+        }, types.shape {
+          actionType: "PAY"
+          feesPayer: "PRIMARYRECEIVER"
+          currencyCode: "EUR"
+          cancelUrl: "http://leafo.net/cancel"
+          returnUrl: "http://leafo.net/return"
+
+          "requestEnvelope.errorLanguage": "en_US"
+          "clientDetails.applicationId": "APP-1234HELLOWORLD",
+          "receiverList.receiver(0).amount": "5.50",
+          "receiverList.receiver(0).email": "me@example.com",
+          "receiverList.receiver(0).primary": "true",
+          "receiverList.receiver(1).amount": "1.50"
+          "receiverList.receiver(1).email": "you@example.com",
+        }
 
