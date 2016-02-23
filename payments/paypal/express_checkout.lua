@@ -90,7 +90,6 @@ do
   _class_0 = setmetatable({
     __init = function(self, opts)
       self.opts = opts
-      assert(self.opts.auth, "missing auth")
       self.auth = assert(self.opts.auth, "missing auth")
       self.auth.VERSION = self.auth.VERSION or "98"
       assert(self.__class.auth_shape(self.auth))

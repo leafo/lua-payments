@@ -11,7 +11,6 @@ ltn12 = require "ltn12"
 -- https://developer.paypal.com/docs/classic/api/#ec
 class PayPalExpressCheckout extends require "payments.base_client"
   @urls: {
-
     live: {
       checkout: "https://www.paypal.com/cgi-bin/webscr"
       certificate: "https://api.paypal.com/nvp"
@@ -33,7 +32,6 @@ class PayPalExpressCheckout extends require "payments.base_client"
   }
 
   new: (@opts) =>
-    assert @opts.auth, "missing auth"
     @auth = assert @opts.auth, "missing auth"
     @auth.VERSION or= "98"
 

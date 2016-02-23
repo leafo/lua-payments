@@ -1,16 +1,28 @@
+local concat
+concat = table.concat
+local types
+types = require("tableshape").types
+local extend, strip_numeric, format_price, calculate_fee
+do
+  local _obj_0 = require("payments.paypal.helpers")
+  extend, strip_numeric, format_price, calculate_fee = _obj_0.extend, _obj_0.strip_numeric, _obj_0.format_price, _obj_0.calculate_fee
+end
+local encode_query_string, parse_query_string
+do
+  local _obj_0 = require("lapis.util")
+  encode_query_string, parse_query_string = _obj_0.encode_query_string, _obj_0.parse_query_string
+end
+local ltn12 = require("ltn12")
 local PayPalAdaptive
 do
   local _class_0
   local _parent_0 = require("payments.base_client")
   local _base_0 = {
-    application_id = "APP-XXX",
-    api_url = "https://svcs.sandbox.paypal.com",
-    base_url = "www.sandbox.paypal.com",
     _method = function(self, action, params)
       local headers = {
-        ["X-PAYPAL-SECURITY-USERID"] = self.user,
-        ["X-PAYPAL-SECURITY-PASSWORD"] = self.password,
-        ["X-PAYPAL-SECURITY-SIGNATURE"] = self.signature,
+        ["X-PAYPAL-SECURITY-USERID"] = self.auth.USER,
+        ["X-PAYPAL-SECURITY-PASSWORD"] = self.auth.PWD,
+        ["X-PAYPAL-SECURITY-SIGNATURE"] = self.auth.SIGNATURE,
         ["X-PAYPAL-REQUEST-DATA-FORMAT"] = "NV",
         ["X-PAYPAL-RESPONSE-DATA-FORMAT"] = "NV",
         ["X-PAYPAL-APPLICATION-ID"] = self.application_id
@@ -25,14 +37,8 @@ do
         headers["Host"] = host
         headers["Content-length"] = #body
       end
-      if debug then
-        local moon = require("moon")
-        io.stdout:write(tostring(action) .. ":\n")
-        io.stdout:write("Params:\n")
-        io.stdout:write(moon.dump(params))
-      end
       local out = { }
-      local _, code, res_headers = assert(http.request({
+      local _, code, res_headers = assert(self:http().request({
         headers = headers,
         url = tostring(self.api_url) .. "/" .. tostring(action),
         source = ltn12.source.string(body),
@@ -45,21 +51,41 @@ do
       if type(res) == "table" then
         strip_numeric(res)
       end
-      if debug then
-        local moon = require("moon")
-        io.stdout:write("RESPONSE " .. tostring(action) .. ":\n")
-        io.stdout:write(moon.dump({
-          res = res,
-          res_headers = res_headers
-        }))
-      end
-      return res, res_headers
+      return self:_extract_error(res, res_headers)
     end,
-    pay = function(self, return_url, cancel_url, receivers, params)
-      if receivers == nil then
-        receivers = { }
+    _extract_error = function(self, res, msg)
+      if res == nil then
+        res = { }
       end
-      assert(#receivers > 0, "there must be at least one receiver")
+      if msg == nil then
+        msg = "paypal failed"
+      end
+      if (res["responseEnvelope.ack"] or ""):lower() == "success" then
+        return res
+      else
+        return nil, res["error(0).message"], res
+      end
+    end,
+    pay = function(self, params)
+      if params == nil then
+        params = { }
+      end
+      assert(params.receivers and #params.receivers > 0, "there must be at least one receiver")
+      local params_shape = types.shape({
+        cancelUrl = types.string,
+        cancelUrl = types.string,
+        receivers = types.array_of(types.shape({
+          email = types.string,
+          amount = types.string
+        }, {
+          open = true
+        }))
+      }, {
+        open = true
+      })
+      assert(params_shape(params))
+      local receivers = params.receivers
+      params.receivers = nil
       params = extend({
         actionType = "PAY",
         currencyCode = "USD",
@@ -118,49 +144,24 @@ do
         ["requestEnvelope.errorLanguage"] = "en_US"
       }, params))
     end,
-    pay_url = function(self, pay_key)
-      return "https://" .. tostring(self.base_url) .. "/webscr?cmd=_ap-payment&paykey=" .. tostring(pay_key)
+    checkout_url = function(self, pay_key)
+      return tostring(self.base_url) .. "/webscr?cmd=_ap-payment&paykey=" .. tostring(pay_key)
     end,
     format_price = function(self, ...)
       return format_price(...)
-    end,
-    calculate_fee = function(self, ...)
-      return calculate_fee(...)
-    end,
-    check_success = function(self, res, msg)
-      if res == nil then
-        res = { }
-      end
-      if msg == nil then
-        msg = "paypal failed"
-      end
-      if (res["responseEnvelope.ack"] or ""):lower() == "success" then
-        return res
-      else
-        return nil, msg
-      end
-    end,
-    assert_success = function(self, ...)
-      return assert_error(self:check_success(...))
     end
   }
   _base_0.__index = _base_0
   setmetatable(_base_0, _parent_0.__base)
   _class_0 = setmetatable({
-    __init = function(self, auth)
-      local params = extend({ }, sandbox, auth)
-      self.user = params.USER
-      self.password = params.PWD
-      self.signature = params.SIGNATURE
-      local _list_0 = {
-        "api_url",
-        "application_id",
-        "base_url"
-      }
-      for _index_0 = 1, #_list_0 do
-        local k = _list_0[_index_0]
-        self[k] = params[k]
-      end
+    __init = function(self, opts)
+      self.opts = opts
+      self.auth = assert(self.opts.auth, "missing auth")
+      assert(self.__class.auth_shape(self.auth))
+      self.application_id = assert(self.opts.application_id, "missing application id")
+      local urls = self.opts.sandbox and self.__class.urls.sandbox or self.__class.urls.live
+      self.api_url = self.opts.api_url or urls.api
+      self.base_url = self.opts.base_url or urls.base
     end,
     __base = _base_0,
     __name = "PayPalAdaptive",
@@ -184,6 +185,22 @@ do
     end
   })
   _base_0.__class = _class_0
+  local self = _class_0
+  self.urls = {
+    live = {
+      base = "https://www.paypal.com",
+      api = "https://svcs.paypal.com"
+    },
+    sandbox = {
+      base = "https://www.sandbox.paypal.com",
+      api = "https://svcs.sandbox.paypal.com"
+    }
+  }
+  self.auth_shape = types.shape({
+    USER = types.string,
+    PWD = types.string,
+    SIGNATURE = types.string
+  })
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
   end

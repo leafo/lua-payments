@@ -1,25 +1,47 @@
+import concat from table
+import types from require "tableshape"
+import extend, strip_numeric, format_price, calculate_fee from require "payments.paypal.helpers"
+
+import encode_query_string, parse_query_string from require "lapis.util"
+
+ltn12 = require "ltn12"
 
 -- Paypal Adaptive Payments (Classic API):
 -- https://developer.paypal.com/docs/classic/api/#ap
 class PayPalAdaptive extends require "payments.base_client"
-  application_id: "APP-XXX" -- sandbox
-  api_url: "https://svcs.sandbox.paypal.com" -- sandbox
-  base_url: "www.sandbox.paypal.com"
+  @urls: {
+    live: {
+      base: "https://www.paypal.com"
+      api: "https://svcs.paypal.com"
+    }
 
-  new: (auth) =>
-    params = extend {}, sandbox, auth
-    @user = params.USER
-    @password = params.PWD
-    @signature = params.SIGNATURE
+    sandbox: {
+      base: "https://www.sandbox.paypal.com"
+      api: "https://svcs.sandbox.paypal.com"
+    }
+  }
 
-    for k in *{"api_url", "application_id", "base_url"}
-      @[k] = params[k]
+  @auth_shape: types.shape {
+    USER: types.string
+    PWD: types.string
+    SIGNATURE: types.string
+  }
+
+  new: (@opts) =>
+    @auth = assert @opts.auth, "missing auth"
+    assert @@.auth_shape @auth
+
+    @application_id = assert @opts.application_id, "missing application id"
+
+    urls = @opts.sandbox and @@urls.sandbox or @@urls.live
+    @api_url = @opts.api_url or urls.api
+    @base_url = @opts.base_url or urls.base
 
   _method: (action, params) =>
     headers = {
-      "X-PAYPAL-SECURITY-USERID": @user
-      "X-PAYPAL-SECURITY-PASSWORD": @password
-      "X-PAYPAL-SECURITY-SIGNATURE": @signature
+      "X-PAYPAL-SECURITY-USERID": @auth.USER
+      "X-PAYPAL-SECURITY-PASSWORD": @auth.PWD
+      "X-PAYPAL-SECURITY-SIGNATURE": @auth.SIGNATURE
       "X-PAYPAL-REQUEST-DATA-FORMAT": "NV" -- Name-Value pair (rather than SOAP)
       "X-PAYPAL-RESPONSE-DATA-FORMAT": "NV"
       "X-PAYPAL-APPLICATION-ID": @application_id
@@ -37,16 +59,8 @@ class PayPalAdaptive extends require "payments.base_client"
       headers["Host"] = host
       headers["Content-length"] = #body
 
-    if debug
-      moon = require "moon"
-      io.stdout\write "#{action}:\n"
-      -- io.stdout\write "Headers:\n"
-      -- io.stdout\write moon.dump headers
-      io.stdout\write "Params:\n"
-      io.stdout\write moon.dump params
-
     out = {}
-    _, code, res_headers = assert http.request {
+    _, code, res_headers = assert @http!.request {
       :headers
       url: "#{@api_url}/#{action}"
       source: ltn12.source.string body
@@ -55,21 +69,37 @@ class PayPalAdaptive extends require "payments.base_client"
       protocol: not ngx and "sslv23" or nil -- for luasec
     }
 
-    text = concat(out)
+    text = concat out
     res = parse_query_string(text) or text
     strip_numeric(res) if type(res) == "table"
 
-    if debug
-      moon = require "moon"
-      io.stdout\write "RESPONSE #{action}:\n"
-      io.stdout\write moon.dump {
-        :res, :res_headers
-      }
+    @_extract_error res, res_headers
 
-    res, res_headers
+  _extract_error: (res={}, msg="paypal failed") =>
+    if (res["responseEnvelope.ack"] or "")\lower! == "success"
+      res
+    else
+      nil, res["error(0).message"], res
 
-  pay: (return_url, cancel_url, receivers={}, params) =>
-    assert #receivers > 0, "there must be at least one receiver"
+  pay: (params={}) =>
+    assert params.receivers and #params.receivers > 0,
+      "there must be at least one receiver"
+
+    params_shape = types.shape {
+      cancelUrl: types.string
+      cancelUrl: types.string
+
+      receivers: types.array_of types.shape {
+        email: types.string
+        amount: types.string
+      }, open: true
+
+    }, open: true
+
+    assert params_shape params
+
+    receivers = params.receivers
+    params.receivers = nil
 
     params = extend {
       actionType: "PAY"
@@ -121,19 +151,9 @@ class PayPalAdaptive extends require "payments.base_client"
       "requestEnvelope.errorLanguage": "en_US"
     }, params
 
-  pay_url: (pay_key) =>
+  checkout_url: (pay_key) =>
     -- "https://www.paypal.com/webapps/adaptivepayment/flow/pay?paykey=#{pay_key}"
-    "https://#{@base_url}/webscr?cmd=_ap-payment&paykey=#{pay_key}"
+    "#{@base_url}/webscr?cmd=_ap-payment&paykey=#{pay_key}"
 
   format_price: (...) => format_price ...
 
-  calculate_fee: (...) => calculate_fee ...
-
-  check_success: (res={}, msg="paypal failed") =>
-    if (res["responseEnvelope.ack"] or "")\lower! == "success"
-      res
-    else
-      nil, msg
-
-  assert_success: (...) =>
-    assert_error @check_success ...
