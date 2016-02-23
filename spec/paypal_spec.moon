@@ -136,6 +136,20 @@ describe "paypal", ->
           payKey: "my-key-1000"
         }
 
+      it "makes sets payment options", ->
+        paypal\set_payment_options "my-key-1001", {
+          "displayOptions.businessName": "some title"
+        }
+
+        assert_request http_requests[1], {
+          method: "POST"
+          url: "https://svcs.sandbox.paypal.com/AdaptivePayments/SetPaymentOptions"
+        }, types.shape {
+          "requestEnvelope.errorLanguage": "en_US"
+          "clientDetails.applicationId": "APP-1234HELLOWORLD"
+          "displayOptions.businessName": "some title"
+          payKey: "my-key-1001"
+        }
 
 
       it "creates checkout url", ->
