@@ -32,6 +32,8 @@ describe "paypal", ->
       local paypal
 
       assert_request = (request, req_shape, params_shape) ->
+        assert request, "missing request"
+
         test_req_shape = {
           headers: types.shape {
             Host: "svcs.sandbox.paypal.com"
@@ -100,13 +102,41 @@ describe "paypal", ->
           returnUrl: "http://leafo.net/return"
 
           "requestEnvelope.errorLanguage": "en_US"
-          "clientDetails.applicationId": "APP-1234HELLOWORLD",
-          "receiverList.receiver(0).amount": "5.50",
-          "receiverList.receiver(0).email": "me@example.com",
-          "receiverList.receiver(0).primary": "true",
+          "clientDetails.applicationId": "APP-1234HELLOWORLD"
+          "receiverList.receiver(0).amount": "5.50"
+          "receiverList.receiver(0).email": "me@example.com"
+          "receiverList.receiver(0).primary": "true"
           "receiverList.receiver(1).amount": "1.50"
-          "receiverList.receiver(1).email": "you@example.com",
+          "receiverList.receiver(1).email": "you@example.com"
         }
+
+      it "makes convert currency request", ->
+        paypal\convert_currency "5.00", "USD", "EUR"
+        assert_request http_requests[1], {
+          method: "POST"
+          url: "https://svcs.sandbox.paypal.com/AdaptivePayments/ConvertCurrency"
+        }, types.shape {
+          "requestEnvelope.errorLanguage": "en_US"
+          "clientDetails.applicationId": "APP-1234HELLOWORLD"
+
+          "baseAmountList.currency(0).code": "USD"
+          "baseAmountList.currency(0).amount": "5.00"
+          "convertToCurrencyList.currencyCode": "EUR"
+        }
+
+      it "makes refund request", ->
+        paypal\refund "my-key-1000"
+
+        assert_request http_requests[1], {
+          method: "POST"
+          url: "https://svcs.sandbox.paypal.com/AdaptivePayments/Refund"
+        }, types.shape {
+          "requestEnvelope.errorLanguage": "en_US"
+          "clientDetails.applicationId": "APP-1234HELLOWORLD"
+          payKey: "my-key-1000"
+        }
+
+
 
       it "creates checkout url", ->
         assert.same "https://www.sandbox.paypal.com/webscr?cmd=_ap-payment&paykey=hello-world", paypal\checkout_url "hello-world"
