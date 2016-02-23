@@ -50,11 +50,13 @@ class PayPalExpressCheckout extends require "payments.base_client"
 
     body = encode_query_string params
 
+    parse_url = require("socket.url").parse
+
     success, code, res_headers = @http!.request {
       url: @api_url
 
       headers: {
-        "Host": assert @api_url\match("//([^/]+)"), "failed to parse host"
+        "Host": assert parse_url(@api_url).host, "failed to get host"
         "Content-type": "application/x-www-form-urlencoded"
         "Content-length": #body
       }

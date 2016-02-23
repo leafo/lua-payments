@@ -27,10 +27,11 @@ do
         end
       end
       local body = encode_query_string(params)
+      local parse_url = require("socket.url").parse
       local success, code, res_headers = self:http().request({
         url = self.api_url,
         headers = {
-          ["Host"] = assert(self.api_url:match("//([^/]+)"), "failed to parse host"),
+          ["Host"] = assert(parse_url(self.api_url).host, "failed to get host"),
           ["Content-type"] = "application/x-www-form-urlencoded",
           ["Content-length"] = #body
         },

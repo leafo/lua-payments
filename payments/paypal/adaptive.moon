@@ -53,11 +53,10 @@ class PayPalAdaptive extends require "payments.base_client"
 
     body = encode_query_string params
 
-    unless ngx
-      parse_url = require("socket.url").parse
-      host = assert parse_url(@api_url).host
-      headers["Host"] = host
-      headers["Content-length"] = #body
+    parse_url = require("socket.url").parse
+    host = assert parse_url(@api_url).host
+    headers["Host"] = host
+    headers["Content-length"] = #body
 
     out = {}
     _, code, res_headers = assert @http!.request {
@@ -66,7 +65,8 @@ class PayPalAdaptive extends require "payments.base_client"
       source: ltn12.source.string body
       method: "POST"
       sink: ltn12.sink.table out
-      protocol: not ngx and "sslv23" or nil -- for luasec
+
+      protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 
     text = concat out

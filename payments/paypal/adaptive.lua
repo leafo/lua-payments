@@ -31,12 +31,10 @@ do
         ["clientDetails.applicationId"] = self.application_id
       }, params)
       local body = encode_query_string(params)
-      if not (ngx) then
-        local parse_url = require("socket.url").parse
-        local host = assert(parse_url(self.api_url).host)
-        headers["Host"] = host
-        headers["Content-length"] = #body
-      end
+      local parse_url = require("socket.url").parse
+      local host = assert(parse_url(self.api_url).host)
+      headers["Host"] = host
+      headers["Content-length"] = #body
       local out = { }
       local _, code, res_headers = assert(self:http().request({
         headers = headers,
@@ -44,7 +42,7 @@ do
         source = ltn12.source.string(body),
         method = "POST",
         sink = ltn12.sink.table(out),
-        protocol = not ngx and "sslv23" or nil
+        protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       }))
       local text = concat(out)
       local res = parse_query_string(text) or text
