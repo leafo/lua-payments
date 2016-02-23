@@ -87,7 +87,7 @@ class PayPalAdaptive extends require "payments.base_client"
 
     params_shape = types.shape {
       cancelUrl: types.string
-      cancelUrl: types.string
+      returnUrl: types.string
 
       receivers: types.array_of types.shape {
         email: types.string

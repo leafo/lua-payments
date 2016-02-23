@@ -71,7 +71,7 @@ do
       assert(params.receivers and #params.receivers > 0, "there must be at least one receiver")
       local params_shape = types.shape({
         cancelUrl = types.string,
-        cancelUrl = types.string,
+        returnUrl = types.string,
         receivers = types.array_of(types.shape({
           email = types.string,
           amount = types.string
