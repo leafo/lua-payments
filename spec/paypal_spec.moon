@@ -22,6 +22,40 @@ make_http = ->
   fn, http_requests
 
 describe "paypal", ->
+  describe "express checkout", ->
+    local http_requests, http_fn
+
+    before_each ->
+      http_fn, http_requests = make_http!
+
+    describe "with client", ->
+      local paypal
+
+      before_each ->
+        import PayPalExpressCheckout from require "payments.paypal"
+        paypal = PayPalExpressCheckout {
+          sandbox: true
+
+          auth: {
+            USER: "me_1212121.leafo.net"
+            PWD: "123456789"
+            SIGNATURE: "AABBBC_CCZZZXXX"
+          }
+        }
+
+        paypal.http = http_fn
+
+      it "call sets_express_checkout", ->
+        paypal\set_express_checkout {
+          returnurl: "http://leafo.net/success"
+          cancelurl: "http://leafo.net/cancel"
+          brandname: "Purchase something"
+          paymentrequest_0_amt: "$5.99"
+        }
+
+        error http_requests
+
+
   describe "adaptive payments", ->
     local http_requests, http_fn
 
