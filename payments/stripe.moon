@@ -1,5 +1,4 @@
 
-http = require "lapis.nginx.http"
 ltn12 = require "ltn12"
 json = require "cjson"
 
@@ -7,14 +6,32 @@ import encode_query_string, parse_query_string from require "lapis.util"
 
 import encode_base64 from require "lapis.util.encoding"
 
+debug = false
+
 class Stripe
   api_url: "https://api.stripe.com/v1/"
 
-  new: (@client_id, @client_secret) =>
+  new: (@client_id, @client_secret, @publishable_key) =>
+
+  calculate_fee: (currency, transactions_count, amount, medium) =>
+    switch medium
+      when "default"
+        -- 2.9% + $0.30 per transaction
+        -- https://stripe.com/us/pricing
+        transactions_count * 30 + math.floor(amount * 0.029)
+      when "bitcoin"
+        -- 0.5% per transaction, no other fee
+        -- https://stripe.com/bitcoin
+        math.floor(amount * 0.005)
+      else
+        error "don't know how to calculate stripe fee for medium #{medium}"
 
   -- TODO: use csrf
   connect_url: =>
     "https://connect.stripe.com/oauth/authorize?response_type=code&scope=read_write&client_id=#{@client_id}"
+
+  http: =>
+    require "lapis.nginx.http"
 
   -- converts auth code into access token
   -- Returns:
@@ -30,7 +47,7 @@ class Stripe
   oauth_token: (code) =>
     out = {}
 
-    http.request {
+    @http!.request {
       url: "https://connect.stripe.com/oauth/token"
       method: "POST"
       sink: ltn12.sink.table out
@@ -44,33 +61,108 @@ class Stripe
     out = table.concat out
     json.decode out
 
+  _request: (method, path, params, access_token=@client_secret) =>
+    out = {}
+    headers = {
+      "Authorization": "Basic " .. encode_base64 access_token .. ":"
+      "Content-Type": "application/x-www-form-urlencoded"
+    }
+
+    if params
+      for k,v in pairs params
+        params[k] = tostring v
+
+      if debug
+        moon = require "moon"
+        io.stdout\write "\nStripe #{method}:\n"
+        io.stdout\write moon.dump params
+        io.stdout\write "\n"
+
+    _, status = @http!.request {
+      url: @api_url .. path
+      :method
+      :headers
+      sink: ltn12.sink.table out
+      source: params and ltn12.source.string(encode_query_string params) or nil
+    }
+
+    json.decode(table.concat out), status
+
   -- charge a card with amount cents
   charge: (opts) =>
     { :access_token, :card, :amount, :currency, :description, :fee } = opts
 
     assert tonumber amount
 
-    -- fee in cents
-    application_fee = if fee and fee > 0
-      amount * fee
+    application_fee = if fee and fee > 0 then fee
 
-    out = {}
+    @_request "POST", "charges", {
+      :card, :amount, :description, :currency, :application_fee
+    }, access_token
 
-    headers = {
-      "Authorization": "Basic " .. encode_base64 access_token .. ":"
-      "Content-Type": "application/x-www-form-urlencoded"
+  get_token: (token_id) =>
+    @_request "GET", "tokens/#{token_id}"
+
+  get_charge: (charge_id) =>
+    @_request "GET", "charges/#{charge_id}"
+
+  refund_charge: (charge_id) =>
+    @_request "POST", "refunds", {
+      charge: charge_id
     }
 
-    status = http.request {
-      url: @api_url .. "charges"
-      method: "POST"
-      :headers
-      sink: ltn12.sink.table out
-      source: ltn12.source.string encode_query_string {
-        :card, :amount, :description, :currency, :application_fee
-      }
+  mark_fraud: (charge_id) =>
+    @_request "POST", "charges/#{charge_id}", {
+      "fraud_details[user_report]": "fraudulent"
     }
 
-    json.decode table.concat out
+  create_account: (opts={}) =>
+    opts.managed = true if opts.managed == nil
+    assert opts.country, "missing country"
+    assert opts.email, "missing country"
+
+    @_request "POST", "accounts", opts
+
+  update_account: (account_id, opts) =>
+    @_request "POST", "accounts/#{account_id}", opts
+
+  list_accounts: =>
+    @_request "GET", "accounts"
+
+  list_products: =>
+    @_request "GET", "products"
+
+  get_account: (account_id) =>
+    @_request "GET", "accounts/#{account_id}"
+
+  list_transfers: =>
+    @_request "GET", "transfers",
+
+  transfer: (destination, currency, amount) =>
+    assert "USD" == currency, "usd only for now"
+    assert tonumber(amount), "invalid amount"
+
+    @_request "POST", "transfers", {
+      :destination
+      :currency
+      :amount
+    }
+
+  -- this is just for development to fill the test account
+  fill_test_balance: (amount=50000) =>
+    config = require("lapis.config").get!
+    assert config._name == "development", "can only fill account in development"
+
+    @_request "POST", "charges", {
+      :amount
+      currency: "USD"
+      "source[object]": "card"
+      "source[number]": "4000000000000077"
+      "source[exp_month]": "2"
+      "source[exp_year]": "22"
+    }
+
+  get_balance: =>
+    @_request "GET", "balance"
 
 { :Stripe }
