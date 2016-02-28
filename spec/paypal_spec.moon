@@ -53,7 +53,31 @@ describe "paypal", ->
           paymentrequest_0_amt: "$5.99"
         }
 
-        error http_requests
+
+        assert_shape http_requests[1], types.shape {
+          method: "POST"
+          url: "https://api-3t.sandbox.paypal.com/nvp"
+          source: types.function
+          sink: types.function
+          headers: types.shape {
+            Host: "api-3t.sandbox.paypal.com"
+            "Content-type": "application/x-www-form-urlencoded"
+            "Content-length": types.number
+          }
+        }
+
+        params = {k,v for k,v in pairs parse_query_string http_requests[1].source! when type(k) == "string"}
+        assert_shape params, types.shape {
+          PAYMENTREQUEST_0_AMT: "$5.99"
+          CANCELURL: "http://leafo.net/cancel"
+          RETURNURL: "http://leafo.net/success"
+          BRANDNAME: "Purchase something"
+          PWD: "123456789"
+          SIGNATURE: "AABBBC_CCZZZXXX"
+          USER: "me_1212121.leafo.net"
+          VERSION: "98"
+          METHOD: "SetExpressCheckout"
+        }
 
 
   describe "adaptive payments", ->
