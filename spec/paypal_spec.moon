@@ -79,6 +79,10 @@ describe "paypal", ->
           METHOD: "SetExpressCheckout"
         }
 
+      it "gets checkout url", ->
+        out = paypal\checkout_url "toekn-abc123"
+        assert.same "https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=toekn-abc123&useraction=commit", out
+
 
   describe "adaptive payments", ->
     local http_requests, http_fn
