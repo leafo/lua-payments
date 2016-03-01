@@ -31,6 +31,28 @@ describe "paypal", ->
     describe "with client", ->
       local paypal
 
+      assert_request = ->
+        assert.same 1, #http_requests
+
+        assert_shape http_requests[1], types.shape {
+          method: "POST"
+          url: "https://api-3t.sandbox.paypal.com/nvp"
+          source: types.function
+          sink: types.function
+          headers: types.shape {
+            Host: "api-3t.sandbox.paypal.com"
+            "Content-type": "application/x-www-form-urlencoded"
+            "Content-length": types.number
+          }
+        }
+
+        http_requests[1]
+
+      assert_params = (request, shape) ->
+        assert request.source, "missing source"
+        params = {k,v for k,v in pairs parse_query_string request.source! when type(k) == "string"}
+        assert_shape params, shape
+
       before_each ->
         import PayPalExpressCheckout from require "payments.paypal"
         paypal = PayPalExpressCheckout {
@@ -53,21 +75,8 @@ describe "paypal", ->
           paymentrequest_0_amt: "$5.99"
         }
 
-
-        assert_shape http_requests[1], types.shape {
-          method: "POST"
-          url: "https://api-3t.sandbox.paypal.com/nvp"
-          source: types.function
-          sink: types.function
-          headers: types.shape {
-            Host: "api-3t.sandbox.paypal.com"
-            "Content-type": "application/x-www-form-urlencoded"
-            "Content-length": types.number
-          }
-        }
-
-        params = {k,v for k,v in pairs parse_query_string http_requests[1].source! when type(k) == "string"}
-        assert_shape params, types.shape {
+        request = assert_request!
+        assert_params request, types.shape {
           PAYMENTREQUEST_0_AMT: "$5.99"
           CANCELURL: "http://leafo.net/cancel"
           RETURNURL: "http://leafo.net/success"
@@ -81,7 +90,6 @@ describe "paypal", ->
 
       it "gets checkout url", ->
         out = paypal\checkout_url "toekn-abc123"
-        assert.same "https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=toekn-abc123&useraction=commit", out
 
 
   describe "adaptive payments", ->
