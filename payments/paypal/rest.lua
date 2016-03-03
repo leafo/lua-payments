@@ -1,3 +1,11 @@
+local json = require("cjson")
+local ltn12 = require("ltn12")
+local format_price
+format_price = require("payments.paypal.helpers").format_price
+local encode_query_string
+encode_query_string = require("lapis.util").encode_query_string
+local concat
+concat = table.concat
 local PayPalRest
 do
   local _class_0
@@ -19,20 +27,26 @@ do
       local encode_base64
       encode_base64 = require("lapis.util.encoding").encode_base64
       local out = { }
-      local res, status = self:http().request({
+      local body = encode_query_string({
+        grant_type = "client_credentials"
+      })
+      local parse_url = require("socket.url").parse
+      local host = assert(parse_url(self.url).host)
+      local res, status = assert(self:http().request({
         url = tostring(self.url) .. "oauth2/token",
         method = "POST",
         sink = ltn12.sink.table(out),
-        source = ltn12.source.string(encode_query_string({
-          grant_type = "client_credentials"
-        })),
+        source = ltn12.source.string(body),
         headers = {
+          ["Host"] = host,
+          ["Content-length"] = #body,
           ["Authorization"] = "Basic " .. tostring(encode_base64(tostring(self.client_id) .. ":" .. tostring(self.secret))),
           ["Content-Type"] = "application/x-www-form-urlencoded",
           ["Accept"] = "application/json",
           ["Accept-Language"] = "en_US"
-        }
-      })
+        },
+        protocol = self.http_provider == "ssl.https" and "sslv23" or nil
+      }))
       self.last_token_time = os.time()
       self.last_token = json.decode(concat(out))
       self.access_token = self.last_token.access_token
@@ -49,29 +63,23 @@ do
       if url_params then
         url = url .. ("?" .. encode_query_string(url_params))
       end
+      local parse_url = require("socket.url").parse
+      local host = assert(parse_url(self.url).host)
       local headers = {
+        ["Host"] = host,
+        ["Content-length"] = body and #body or nil,
         ["Authorization"] = "Bearer " .. tostring(self.access_token),
         ["Content-Type"] = "application/json",
         ["Accept"] = "application/json",
         ["Accept-Language"] = "en_US"
       }
-      if debug then
-        local moon = require("moon")
-        io.stdout:write("\n\nPayPal REST:")
-        io.stdout:write(moon.dump({
-          url = url,
-          body = body,
-          method = method,
-          headers = headers
-        }))
-        io.stdout:write("\n\n")
-      end
       local res, status = self:http().request({
         url = url,
         method = method,
         headers = headers,
         sink = ltn12.sink.table(out),
-        source = body and ltn12.source.string(body) or nil
+        source = body and ltn12.source.string(body) or nil,
+        protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       })
       return json.decode(concat(out)), status
     end,

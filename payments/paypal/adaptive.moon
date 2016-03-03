@@ -1,6 +1,6 @@
 import concat from table
 import types from require "tableshape"
-import extend, strip_numeric, format_price, calculate_fee from require "payments.paypal.helpers"
+import extend, strip_numeric, format_price from require "payments.paypal.helpers"
 
 import encode_query_string, parse_query_string from require "lapis.util"
 

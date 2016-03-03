@@ -2,10 +2,10 @@ local concat
 concat = table.concat
 local types
 types = require("tableshape").types
-local extend, strip_numeric, format_price, calculate_fee
+local extend, strip_numeric, format_price
 do
   local _obj_0 = require("payments.paypal.helpers")
-  extend, strip_numeric, format_price, calculate_fee = _obj_0.extend, _obj_0.strip_numeric, _obj_0.format_price, _obj_0.calculate_fee
+  extend, strip_numeric, format_price = _obj_0.extend, _obj_0.strip_numeric, _obj_0.format_price
 end
 local encode_query_string, parse_query_string
 do

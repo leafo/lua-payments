@@ -1,3 +1,14 @@
+
+json = require "cjson"
+ltn12 = require "ltn12"
+
+
+import format_price from require "payments.paypal.helpers"
+
+import encode_query_string from require "lapis.util"
+
+import concat from table
+
 -- Paypal REST API:
 -- https://developer.paypal.com/docs/api/
 class PayPalRest extends require "payments.base_client"
@@ -26,18 +37,26 @@ class PayPalRest extends require "payments.base_client"
 
     out = {}
 
-    res, status = @http!.request {
+    body = encode_query_string grant_type: "client_credentials"
+
+    parse_url = require("socket.url").parse
+    host = assert parse_url(@url).host
+
+    res, status = assert @http!.request {
       url: "#{@url}oauth2/token"
       method: "POST"
       sink: ltn12.sink.table out
-      source: ltn12.source.string(encode_query_string grant_type: "client_credentials")
+      source: ltn12.source.string(body)
       headers: {
+        "Host": host
+        "Content-length": #body
         "Authorization": "Basic #{encode_base64 "#{@client_id}:#{@secret}"}"
         "Content-Type": "application/x-www-form-urlencoded"
         "Accept": "application/json"
         "Accept-Language": "en_US"
-
       }
+
+      protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 
     @last_token_time = os.time!
@@ -59,23 +78,18 @@ class PayPalRest extends require "payments.base_client"
     if url_params
       url ..= "?" .. encode_query_string url_params
 
+
+    parse_url = require("socket.url").parse
+    host = assert parse_url(@url).host
+
     headers = {
+      "Host": host
+      "Content-length": body and #body or nil
       "Authorization": "Bearer #{@access_token}"
       "Content-Type": "application/json"
       "Accept": "application/json"
       "Accept-Language": "en_US"
     }
-
-    if debug
-      moon = require "moon"
-      io.stdout\write "\n\nPayPal REST:"
-      io.stdout\write moon.dump {
-        :url
-        :body
-        :method
-        :headers
-      }
-      io.stdout\write "\n\n"
 
     res, status = @http!.request {
       :url
@@ -84,6 +98,8 @@ class PayPalRest extends require "payments.base_client"
 
       sink: ltn12.sink.table out
       source: body and ltn12.source.string(body) or nil
+
+      protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 
     json.decode(concat out), status
