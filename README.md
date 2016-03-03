@@ -91,5 +91,24 @@ local details = assert(client:payment_details(res.payKey))
 
 ```
 
+### PayPal Rest API
+
+Create the API client:
+
+```lua
+local paypal = require("payments.paypal")
+
+local client = paypal.PayPalRest({
+  sandbox = true,
+  client_id = "AVP_0123445",
+  secret = "EFAAAAEFE-HELLO-WORLD",
+})
+```
+
+Fetch some data:
+
+```lua
+local payments = client:payment_resources()
+```
 
 
