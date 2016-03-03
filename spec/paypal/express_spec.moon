@@ -1,4 +1,3 @@
-
 import types from require "tableshape"
 import parse_query_string from require "lapis.util"
 import extract_params, make_http, assert_shape from require "spec.helpers"
@@ -31,8 +30,7 @@ describe "paypal", ->
         http_requests[1]
 
       assert_params = (request, shape) ->
-        assert request.source, "missing source"
-        params = {k,v for k,v in pairs parse_query_string request.source! when type(k) == "string"}
+        params = extract_params assert(request.source, "missing source")!
         assert_shape params, shape
 
       before_each ->

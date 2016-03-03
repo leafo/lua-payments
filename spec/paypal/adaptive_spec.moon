@@ -1,5 +1,4 @@
 import types from require "tableshape"
-import parse_query_string from require "lapis.util"
 import extract_params, make_http, assert_shape from require "spec.helpers"
 
 describe "paypal", ->
