@@ -71,12 +71,19 @@ do
         source = body and ltn12.source.string(body) or nil,
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       })
-      return json.decode(table.concat(out)), status
+      return self:_format_response(json.decode(table.concat(out)), status)
+    end,
+    _format_response = function(self, res, status)
+      if res.error then
+        return nil, res.error.message, res, status
+      else
+        return res.status
+      end
     end,
     charge = function(self, opts)
       local access_token, card, amount, currency, description, fee
       access_token, card, amount, currency, description, fee = opts.access_token, opts.card, opts.amount, opts.currency, opts.description, opts.fee
-      assert(tonumber(amount))
+      assert(tonumber(amount), "missing amount")
       local application_fee
       if fee and fee > 0 then
         application_fee = fee

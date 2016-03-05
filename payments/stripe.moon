@@ -93,13 +93,19 @@ class Stripe extends require "payments.base_client"
       protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 
-    json.decode(table.concat out), status
+    @_format_response json.decode(table.concat out), status
+
+  _format_response: (res, status) =>
+    if res.error
+      nil, res.error.message, res, status
+    else
+      res, status
 
   -- charge a card with amount cents
   charge: (opts) =>
     { :access_token, :card, :amount, :currency, :description, :fee } = opts
 
-    assert tonumber amount
+    assert tonumber(amount), "missing amount"
 
     application_fee = if fee and fee > 0 then fee
 
