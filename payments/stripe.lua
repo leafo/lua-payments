@@ -26,20 +26,21 @@ do
     connect_url = function(self)
       return "https://connect.stripe.com/oauth/authorize?response_type=code&scope=read_write&client_id=" .. tostring(self.client_id)
     end,
-    http = function(self)
-      return require("lapis.nginx.http")
-    end,
     oauth_token = function(self, code)
       local out = { }
       self:http().request({
         url = "https://connect.stripe.com/oauth/token",
         method = "POST",
         sink = ltn12.sink.table(out),
+        headers = {
+          ["Host"] = assert(parse_url(self.api_url).host, "failed to get host")
+        },
         source = ltn12.source.string(encode_query_string({
           code = code,
           client_secret = self.client_secret,
           grant_type = "authorization_code"
-        }))
+        })),
+        protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       })
       out = table.concat(out)
       return json.decode(out)
@@ -49,21 +50,26 @@ do
         access_token = self.client_secret
       end
       local out = { }
-      local headers = {
-        ["Authorization"] = "Basic " .. encode_base64(access_token .. ":"),
-        ["Content-Type"] = "application/x-www-form-urlencoded"
-      }
       if params then
         for k, v in pairs(params) do
           params[k] = tostring(v)
         end
       end
+      local body = params and encode_query_string(params)
+      local parse_url = require("socket.url").parse
+      local headers = {
+        ["Host"] = assert(parse_url(self.api_url).host, "failed to get host"),
+        ["Authorization"] = "Basic " .. encode_base64(access_token .. ":"),
+        ["Content-Type"] = "application/x-www-form-urlencoded",
+        ["Content-length"] = body and #body or nil
+      }
       local _, status = self:http().request({
         url = self.api_url .. path,
         method = method,
         headers = headers,
         sink = ltn12.sink.table(out),
-        source = params and ltn12.source.string(encode_query_string(params)) or nil
+        source = body and ltn12.source.string(body) or nil,
+        protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       })
       return json.decode(table.concat(out)), status
     end,
@@ -82,6 +88,9 @@ do
         currency = currency,
         application_fee = application_fee
       }, access_token)
+    end,
+    get_charges = function(self)
+      return self:_request("GET", "charges")
     end,
     get_token = function(self, token_id)
       return self:_request("GET", "tokens/" .. tostring(token_id))
@@ -156,8 +165,10 @@ do
   _base_0.__index = _base_0
   setmetatable(_base_0, _parent_0.__base)
   _class_0 = setmetatable({
-    __init = function(self, client_id, client_secret, publishable_key)
-      self.client_id, self.client_secret, self.publishable_key = client_id, client_secret, publishable_key
+    __init = function(self, opts)
+      self.client_id = assert(opts.client_id, "missing client id")
+      self.client_secret = assert(opts.client_secret, "missing client secret")
+      self.publishable_key = opts.publishable_key
     end,
     __base = _base_0,
     __name = "Stripe",

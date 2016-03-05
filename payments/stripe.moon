@@ -9,7 +9,10 @@ import encode_base64 from require "lapis.util.encoding"
 class Stripe extends require "payments.base_client"
   api_url: "https://api.stripe.com/v1/"
 
-  new: (@client_id, @client_secret, @publishable_key) =>
+  new: (opts) =>
+    @client_id = assert opts.client_id, "missing client id"
+    @client_secret = assert opts.client_secret, "missing client secret"
+    @publishable_key = opts.publishable_key
 
   calculate_fee: (currency, transactions_count, amount, medium) =>
     switch medium
@@ -27,9 +30,6 @@ class Stripe extends require "payments.base_client"
   -- TODO: use csrf
   connect_url: =>
     "https://connect.stripe.com/oauth/authorize?response_type=code&scope=read_write&client_id=#{@client_id}"
-
-  http: =>
-    require "lapis.nginx.http"
 
   -- converts auth code into access token
   -- Returns:
@@ -49,11 +49,17 @@ class Stripe extends require "payments.base_client"
       url: "https://connect.stripe.com/oauth/token"
       method: "POST"
       sink: ltn12.sink.table out
+      headers: {
+        "Host": assert parse_url(@api_url).host, "failed to get host"
+      }
+
       source: ltn12.source.string encode_query_string {
         :code
         client_secret: @client_secret
         grant_type: "authorization_code"
       }
+
+      protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 
     out = table.concat out
@@ -61,21 +67,30 @@ class Stripe extends require "payments.base_client"
 
   _request: (method, path, params, access_token=@client_secret) =>
     out = {}
-    headers = {
-      "Authorization": "Basic " .. encode_base64 access_token .. ":"
-      "Content-Type": "application/x-www-form-urlencoded"
-    }
 
     if params
       for k,v in pairs params
         params[k] = tostring v
+
+    body = params and encode_query_string params
+
+    parse_url = require("socket.url").parse
+
+    headers = {
+      "Host": assert parse_url(@api_url).host, "failed to get host"
+      "Authorization": "Basic " .. encode_base64 access_token .. ":"
+      "Content-Type": "application/x-www-form-urlencoded"
+      "Content-length": body and #body or nil
+    }
 
     _, status = @http!.request {
       url: @api_url .. path
       :method
       :headers
       sink: ltn12.sink.table out
-      source: params and ltn12.source.string(encode_query_string params) or nil
+      source: body and ltn12.source.string(body) or nil
+
+      protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 
     json.decode(table.concat out), status
@@ -91,6 +106,9 @@ class Stripe extends require "payments.base_client"
     @_request "POST", "charges", {
       :card, :amount, :description, :currency, :application_fee
     }, access_token
+
+  get_charges: =>
+    @_request "GET", "charges"
 
   get_token: (token_id) =>
     @_request "GET", "tokens/#{token_id}"
