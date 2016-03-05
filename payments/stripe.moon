@@ -6,9 +6,7 @@ import encode_query_string, parse_query_string from require "lapis.util"
 
 import encode_base64 from require "lapis.util.encoding"
 
-debug = false
-
-class Stripe
+class Stripe extends require "payments.base_client"
   api_url: "https://api.stripe.com/v1/"
 
   new: (@client_id, @client_secret, @publishable_key) =>
@@ -71,12 +69,6 @@ class Stripe
     if params
       for k,v in pairs params
         params[k] = tostring v
-
-      if debug
-        moon = require "moon"
-        io.stdout\write "\nStripe #{method}:\n"
-        io.stdout\write moon.dump params
-        io.stdout\write "\n"
 
     _, status = @http!.request {
       url: @api_url .. path

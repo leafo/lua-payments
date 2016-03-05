@@ -7,10 +7,10 @@ do
 end
 local encode_base64
 encode_base64 = require("lapis.util.encoding").encode_base64
-local debug = false
 local Stripe
 do
   local _class_0
+  local _parent_0 = require("payments.base_client")
   local _base_0 = {
     api_url = "https://api.stripe.com/v1/",
     calculate_fee = function(self, currency, transactions_count, amount, medium)
@@ -56,12 +56,6 @@ do
       if params then
         for k, v in pairs(params) do
           params[k] = tostring(v)
-        end
-        if debug then
-          local moon = require("moon")
-          io.stdout:write("\nStripe " .. tostring(method) .. ":\n")
-          io.stdout:write(moon.dump(params))
-          io.stdout:write("\n")
         end
       end
       local _, status = self:http().request({
@@ -160,14 +154,26 @@ do
     end
   }
   _base_0.__index = _base_0
+  setmetatable(_base_0, _parent_0.__base)
   _class_0 = setmetatable({
     __init = function(self, client_id, client_secret, publishable_key)
       self.client_id, self.client_secret, self.publishable_key = client_id, client_secret, publishable_key
     end,
     __base = _base_0,
-    __name = "Stripe"
+    __name = "Stripe",
+    __parent = _parent_0
   }, {
-    __index = _base_0,
+    __index = function(cls, name)
+      local val = rawget(_base_0, name)
+      if val == nil then
+        local parent = rawget(cls, "__parent")
+        if parent then
+          return parent[name]
+        end
+      else
+        return val
+      end
+    end,
     __call = function(cls, ...)
       local _self_0 = setmetatable({}, _base_0)
       cls.__init(_self_0, ...)
@@ -175,6 +181,9 @@ do
     end
   })
   _base_0.__class = _class_0
+  if _parent_0.__inherited then
+    _parent_0.__inherited(_parent_0, _class_0)
+  end
   Stripe = _class_0
 end
 return {
