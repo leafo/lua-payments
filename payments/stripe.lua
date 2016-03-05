@@ -77,7 +77,7 @@ do
       if res.error then
         return nil, res.error.message, res, status
       else
-        return res.status
+        return res, status
       end
     end,
     charge = function(self, opts)
