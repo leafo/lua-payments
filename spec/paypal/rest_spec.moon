@@ -12,7 +12,7 @@ describe "paypal", ->
           json = require "cjson"
           req.sink json.encode {
             access_token: "ACCESS_TOKEN"
-            expires_in: os.time! + 100
+            expires_in: 100
           }
 
         paypal = PayPalRest {
@@ -36,11 +36,11 @@ describe "paypal", ->
             "Content-Type": "application/x-www-form-urlencoded"
             "Accept-Language": "en_US"
           }
-        }) http_requests[1]
+        }) req
 
         assert.same {
           grant_type: "client_credentials"
-        }, extract_params http_requests[1].source!
+        }, extract_params req.source!
 
       assert_api_requrest = (req, opts) ->
         assert (types.shape {
@@ -55,8 +55,6 @@ describe "paypal", ->
             "Accept-Language": "en_US"
           }
         }) http_requests[2]
-
-
 
       it "makes request", ->
         paypal\payment_resources!
@@ -83,4 +81,11 @@ describe "paypal", ->
             url: "https://api.paypal.com/v1/payments/payment/"
           }
 
+      it "fetches new oauth token when expired", ->
+        paypal\payment_resources!
+        paypal.last_token_time -= 200
+        paypal\payment_resources!
 
+        assert.same 4, #http_requests
+        assert_oauth_token_request http_requests[1]
+        assert_oauth_token_request http_requests[3]
