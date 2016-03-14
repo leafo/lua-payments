@@ -72,7 +72,8 @@ class Stripe extends require "payments.base_client"
       for k,v in pairs params
         params[k] = tostring v
 
-    body = params and encode_query_string params
+    body = if method != "GET"
+      params and encode_query_string params
 
     parse_url = require("socket.url").parse
 
@@ -83,8 +84,12 @@ class Stripe extends require "payments.base_client"
       "Content-length": body and #body or nil
     }
 
+    url = @api_url .. path
+    if method == "GET" and params
+      url ..= "?#{encode_query_string params}"
+
     _, status = @http!.request {
-      url: @api_url .. path
+      :url
       :method
       :headers
       sink: ltn12.sink.table out
@@ -113,7 +118,7 @@ class Stripe extends require "payments.base_client"
       :card, :amount, :description, :currency, :application_fee
     }, access_token
 
-  get_charges: =>
+  list_charges: =>
     @_request "GET", "charges"
 
   get_token: (token_id) =>
@@ -153,6 +158,9 @@ class Stripe extends require "payments.base_client"
 
   list_transfers: =>
     @_request "GET", "transfers",
+
+  list_disputes: (opts) =>
+    @_request "GET", "disputes", opts
 
   transfer: (destination, currency, amount) =>
     assert "USD" == currency, "usd only for now"

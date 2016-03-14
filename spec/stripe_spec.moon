@@ -24,12 +24,37 @@ describe "stripe", ->
       }
       stripe.http = http_fn
 
-    it "get_charges", ->
+    it "list_disputes", ->
       assert.same {
         {hello: "world"}
         200
       }, {
-        stripe\get_charges!
+        stripe\list_disputes limit: 20
+      }
+
+      req = assert http_requests[1]
+
+      req_shape = types.shape {
+        method: "GET"
+        url: "https://api.stripe.com/v1/disputes?limit=20"
+        sink: types.function
+
+        headers: types.shape {
+          "Host": "api.stripe.com"
+          "Content-Type": "application/x-www-form-urlencoded"
+          "Authorization": "Basic Y2xpZW50X3NlY3JldDo="
+        }
+      }
+
+      assert req_shape req
+
+
+    it "list_charges", ->
+      assert.same {
+        {hello: "world"}
+        200
+      }, {
+        stripe\list_charges!
       }
 
       req = assert http_requests[1]

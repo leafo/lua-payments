@@ -55,7 +55,10 @@ do
           params[k] = tostring(v)
         end
       end
-      local body = params and encode_query_string(params)
+      local body
+      if method ~= "GET" then
+        body = params and encode_query_string(params)
+      end
       local parse_url = require("socket.url").parse
       local headers = {
         ["Host"] = assert(parse_url(self.api_url).host, "failed to get host"),
@@ -63,8 +66,12 @@ do
         ["Content-Type"] = "application/x-www-form-urlencoded",
         ["Content-length"] = body and #body or nil
       }
+      local url = self.api_url .. path
+      if method == "GET" and params then
+        url = url .. "?" .. tostring(encode_query_string(params))
+      end
       local _, status = self:http().request({
-        url = self.api_url .. path,
+        url = url,
         method = method,
         headers = headers,
         sink = ltn12.sink.table(out),
@@ -96,7 +103,7 @@ do
         application_fee = application_fee
       }, access_token)
     end,
-    get_charges = function(self)
+    list_charges = function(self)
       return self:_request("GET", "charges")
     end,
     get_token = function(self, token_id)
@@ -140,6 +147,9 @@ do
     end,
     list_transfers = function(self)
       return self:_request("GET", "transfers")
+    end,
+    list_disputes = function(self, opts)
+      return self:_request("GET", "disputes", opts)
     end,
     transfer = function(self, destination, currency, amount)
       assert("USD" == currency, "usd only for now")
