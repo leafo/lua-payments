@@ -103,6 +103,12 @@ do
         application_fee = application_fee
       }, access_token)
     end,
+    create_customer = function(self, opts)
+      return self:_request("POST", "customers", opts)
+    end,
+    list_customers = function(self, opts)
+      return self:_request("GET", "customers", opts)
+    end,
     list_charges = function(self)
       return self:_request("GET", "charges")
     end,

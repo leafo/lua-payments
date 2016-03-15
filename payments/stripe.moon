@@ -118,6 +118,12 @@ class Stripe extends require "payments.base_client"
       :card, :amount, :description, :currency, :application_fee
     }, access_token
 
+  create_customer: (opts) =>
+    @_request "POST", "customers", opts
+
+  list_customers: (opts) =>
+    @_request "GET", "customers", opts
+
   list_charges: =>
     @_request "GET", "charges"
 
