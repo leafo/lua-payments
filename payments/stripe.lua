@@ -109,6 +109,15 @@ do
     list_customers = function(self, opts)
       return self:_request("GET", "customers", opts)
     end,
+    get_customer = function(self, customer_id, opts)
+      return self:_request("GET", "customers/" .. tostring(customer_id), opts)
+    end,
+    update_customer = function(self, customer_id, opts)
+      return self:_request("POST", "customers/" .. tostring(customer_id), opts)
+    end,
+    delete_customer = function(self, customer_id)
+      return self:_request("DELETE", "customers/" .. tostring(customer_id))
+    end,
     list_charges = function(self)
       return self:_request("GET", "charges")
     end,
