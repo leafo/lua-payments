@@ -166,6 +166,9 @@ do
     list_disputes = function(self, opts)
       return self:_request("GET", "disputes", opts)
     end,
+    list_refunds = function(self, opts)
+      return self:_request("GET", "refunds", opts)
+    end,
     transfer = function(self, destination, currency, amount)
       assert("USD" == currency, "usd only for now")
       assert(tonumber(amount), "invalid amount")

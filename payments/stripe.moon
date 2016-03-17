@@ -177,6 +177,9 @@ class Stripe extends require "payments.base_client"
   list_disputes: (opts) =>
     @_request "GET", "disputes", opts
 
+  list_refunds: (opts) =>
+    @_request "GET", "refunds", opts
+
   transfer: (destination, currency, amount) =>
     assert "USD" == currency, "usd only for now"
     assert tonumber(amount), "invalid amount"
