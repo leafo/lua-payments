@@ -45,20 +45,25 @@ class Stripe extends require "payments.base_client"
   oauth_token: (code) =>
     out = {}
 
+    parse_url = require("socket.url").parse
+
+    body = encode_query_string {
+      :code
+      client_secret: @client_secret
+      grant_type: "authorization_code"
+    }
+
     @http!.request {
       url: "https://connect.stripe.com/oauth/token"
       method: "POST"
       sink: ltn12.sink.table out
       headers: {
         "Host": assert parse_url(@api_url).host, "failed to get host"
+        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-length": body and #body or nil
       }
 
-      source: ltn12.source.string encode_query_string {
-        :code
-        client_secret: @client_secret
-        grant_type: "authorization_code"
-      }
-
+      source: ltn12.source.string body
       protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 

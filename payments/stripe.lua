@@ -28,18 +28,22 @@ do
     end,
     oauth_token = function(self, code)
       local out = { }
+      local parse_url = require("socket.url").parse
+      local body = encode_query_string({
+        code = code,
+        client_secret = self.client_secret,
+        grant_type = "authorization_code"
+      })
       self:http().request({
         url = "https://connect.stripe.com/oauth/token",
         method = "POST",
         sink = ltn12.sink.table(out),
         headers = {
-          ["Host"] = assert(parse_url(self.api_url).host, "failed to get host")
+          ["Host"] = assert(parse_url(self.api_url).host, "failed to get host"),
+          ["Content-Type"] = "application/x-www-form-urlencoded",
+          ["Content-length"] = body and #body or nil
         },
-        source = ltn12.source.string(encode_query_string({
-          code = code,
-          client_secret = self.client_secret,
-          grant_type = "authorization_code"
-        })),
+        source = ltn12.source.string(body),
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       })
       out = table.concat(out)
