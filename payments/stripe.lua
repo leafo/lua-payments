@@ -34,18 +34,19 @@ do
         client_secret = self.client_secret,
         grant_type = "authorization_code"
       })
-      self:http().request({
-        url = "https://connect.stripe.com/oauth/token",
+      local connect_url = "https://connect.stripe.com/oauth/token"
+      assert(self:http().request({
+        url = connect_url,
         method = "POST",
         sink = ltn12.sink.table(out),
         headers = {
-          ["Host"] = assert(parse_url(self.api_url).host, "failed to get host"),
+          ["Host"] = assert(parse_url(connect_url).host, "failed to get host"),
           ["Content-Type"] = "application/x-www-form-urlencoded",
           ["Content-length"] = body and #body or nil
         },
         source = ltn12.source.string(body),
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
-      })
+      }))
       out = table.concat(out)
       return json.decode(out)
     end,

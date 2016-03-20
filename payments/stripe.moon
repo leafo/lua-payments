@@ -53,12 +53,14 @@ class Stripe extends require "payments.base_client"
       grant_type: "authorization_code"
     }
 
-    @http!.request {
-      url: "https://connect.stripe.com/oauth/token"
+    connect_url = "https://connect.stripe.com/oauth/token"
+
+    assert @http!.request {
+      url: connect_url
       method: "POST"
       sink: ltn12.sink.table out
       headers: {
-        "Host": assert parse_url(@api_url).host, "failed to get host"
+        "Host": assert parse_url(connect_url).host, "failed to get host"
         "Content-Type": "application/x-www-form-urlencoded"
         "Content-length": body and #body or nil
       }
