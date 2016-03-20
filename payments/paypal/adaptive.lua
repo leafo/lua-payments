@@ -93,8 +93,8 @@ do
           end
         end)(),
         ["requestEnvelope.errorLanguage"] = "en_US",
-        cancelUrl = cancel_url,
-        returnUrl = return_url
+        cancelUrl = params.returnUrl,
+        returnUrl = params.cancelUrl
       }, params)
       for i, r in ipairs(receivers) do
         i = i - 1

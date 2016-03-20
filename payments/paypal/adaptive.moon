@@ -107,8 +107,8 @@ class PayPalAdaptive extends require "payments.base_client"
       feesPayer: if #receivers > 1 then "PRIMARYRECEIVER"
       "requestEnvelope.errorLanguage": "en_US"
 
-      cancelUrl: cancel_url
-      returnUrl: return_url
+      cancelUrl: params.returnUrl
+      returnUrl: params.cancelUrl
     }, params
 
     for i, r in ipairs receivers
