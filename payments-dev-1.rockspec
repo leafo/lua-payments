@@ -22,6 +22,14 @@ dependencies = {
 build = {
   type = "builtin",
   modules = {
+    ["payments.amazon"] = "payments/amazon.lua",
+    ["payments.base_client"] = "payments/base_client.lua",
+    ["payments.paypal.adaptive"] = "payments/paypal/adaptive.lua",
+    ["payments.paypal.express_checkout"] = "payments/paypal/express_checkout.lua",
+    ["payments.paypal.helpers"] = "payments/paypal/helpers.lua",
+    ["payments.paypal"] = "payments/paypal.lua",
+    ["payments.paypal.rest"] = "payments/paypal/rest.lua",
+    ["payments.stripe"] = "payments/stripe.lua",
   }
 }
 
