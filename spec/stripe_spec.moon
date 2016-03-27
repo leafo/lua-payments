@@ -48,7 +48,30 @@ describe "stripe", ->
 
       assert req_shape req
 
+    it "get_charge", ->
+      assert.same {
+        {hello: "world"}
+        200
+      }, {
+        stripe\get_charge "123"
+      }
 
+
+      req = assert http_requests[1]
+
+      req_shape = types.shape {
+        method: "GET"
+        url: "https://api.stripe.com/v1/charges/123"
+        sink: types.function
+
+        headers: types.shape {
+          "Host": "api.stripe.com"
+          "Content-Type": "application/x-www-form-urlencoded"
+          "Authorization": "Basic Y2xpZW50X3NlY3JldDo="
+        }
+      }
+
+      assert req_shape req
     it "list_charges", ->
       assert.same {
         {hello: "world"}
