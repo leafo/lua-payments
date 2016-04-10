@@ -18,7 +18,7 @@ class Stripe extends require "payments.base_client"
       @__base[list_method] or= (opts) =>
         @_request "GET", name, opts
 
-      @__base["each_#{name}"] or= =>
+      @__base["each_#{singular}"] or= =>
         @_iterate_resource @[list_method]
 
       @__base["get_#{singular}"] or= (id) =>
@@ -178,6 +178,7 @@ class Stripe extends require "payments.base_client"
   resource "transfers", edit: false
 
   -- charge a card with amount cents
+  -- TODO: replace this with resource
   charge: (opts) =>
     { :access_token, :card, :amount, :currency, :description, :fee } = opts
 

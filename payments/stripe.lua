@@ -223,7 +223,7 @@ do
       self.__base[list_method] = self.__base[list_method] or function(self, opts)
         return self:_request("GET", name, opts)
       end
-      self.__base["each_" .. tostring(name)] = self.__base["each_"] or function(self)
+      self.__base["each_" .. tostring(singular)] = self.__base["each_"] or function(self)
         return self:_iterate_resource(self[list_method])
       end
       self.__base["get_" .. tostring(singular)] = self.__base["get_"] or function(self, id)
