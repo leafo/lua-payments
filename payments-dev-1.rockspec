@@ -6,7 +6,7 @@ source = {
 }
 
 description = {
-  summary = "Payment APIs for Lua",
+  summary = "Payment APIs for Lua, including Stripe & PayPal. Works with Openresty",
   homepage = "https://github.com/leafo/lua-payments",
   license = "MIT"
 }
