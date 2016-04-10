@@ -163,8 +163,8 @@ class Stripe extends require "payments.base_client"
   delete_customer_card: (customer_id, card_id, opts) =>
     @_request "DELETE", "customers/#{customer_id}/sources/#{card_id}", opts
 
-  list_charges: =>
-    @_request "GET", "charges"
+  list_charges: (opts) =>
+    @_request "GET", "charges", opts
 
   get_token: (token_id) =>
     @_request "GET", "tokens/#{token_id}"
@@ -198,14 +198,14 @@ class Stripe extends require "payments.base_client"
   each_account: =>
     @_iterate_resource @list_accounts
 
-  list_products: =>
-    @_request "GET", "products"
+  list_products: (opts) =>
+    @_request "GET", "products", opts
 
   get_account: (account_id) =>
     @_request "GET", "accounts/#{account_id}"
 
-  list_transfers: =>
-    @_request "GET", "transfers",
+  list_transfers: (opts) =>
+    @_request "GET", "transfers", opts
 
   list_disputes: (opts) =>
     @_request "GET", "disputes", opts

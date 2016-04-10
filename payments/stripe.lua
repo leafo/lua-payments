@@ -155,8 +155,8 @@ do
     delete_customer_card = function(self, customer_id, card_id, opts)
       return self:_request("DELETE", "customers/" .. tostring(customer_id) .. "/sources/" .. tostring(card_id), opts)
     end,
-    list_charges = function(self)
-      return self:_request("GET", "charges")
+    list_charges = function(self, opts)
+      return self:_request("GET", "charges", opts)
     end,
     get_token = function(self, token_id)
       return self:_request("GET", "tokens/" .. tostring(token_id))
@@ -194,14 +194,14 @@ do
     each_account = function(self)
       return self:_iterate_resource(self.list_accounts)
     end,
-    list_products = function(self)
-      return self:_request("GET", "products")
+    list_products = function(self, opts)
+      return self:_request("GET", "products", opts)
     end,
     get_account = function(self, account_id)
       return self:_request("GET", "accounts/" .. tostring(account_id))
     end,
-    list_transfers = function(self)
-      return self:_request("GET", "transfers")
+    list_transfers = function(self, opts)
+      return self:_request("GET", "transfers", opts)
     end,
     list_disputes = function(self, opts)
       return self:_request("GET", "disputes", opts)
