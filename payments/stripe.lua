@@ -126,6 +126,9 @@ do
     create_card = function(self, customer_id, opts)
       return self:_request("POST", "customers/" .. tostring(customer_id) .. "/sources", opts)
     end,
+    customer_delete_card = function(self, customer_id, card_id, opts)
+      return self:_request("DELETE", "customers/" .. tostring(customer_id) .. "/sources/" .. tostring(card_id), opts)
+    end,
     list_charges = function(self)
       return self:_request("GET", "charges")
     end,
