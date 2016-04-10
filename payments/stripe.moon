@@ -113,6 +113,23 @@ class Stripe extends require "payments.base_client"
     else
       res, status
 
+  _iterate_resource: (method, per_page=50) =>
+    local last_id
+    coroutine.wrap ->
+      while true
+        items = assert method @, {
+          limit: per_page
+          starting_after: last_id
+        }
+
+        for a in *items.data
+          last_id = a.id
+          coroutine.yield a
+
+        break unless items.has_more
+        break unless last_id
+
+
   -- charge a card with amount cents
   charge: (opts) =>
     { :access_token, :card, :amount, :currency, :description, :fee } = opts
@@ -179,20 +196,7 @@ class Stripe extends require "payments.base_client"
     @_request "GET", "accounts", opts
 
   each_account: =>
-    local last_id
-    coroutine.wrap ->
-      while true
-        accounts = assert @list_accounts {
-          limit: 100
-          starting_after: last_id
-        }
-
-        for a in *accounts.data
-          last_id = a.id
-          coroutine.yield a
-
-        break unless accounts.has_more
-        break unless last_id
+    @_iterate_resource @list_accounts
 
   list_products: =>
     @_request "GET", "products"

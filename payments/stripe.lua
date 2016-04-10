@@ -92,6 +92,32 @@ do
         return res, status
       end
     end,
+    _iterate_resource = function(self, method, per_page)
+      if per_page == nil then
+        per_page = 50
+      end
+      local last_id
+      return coroutine.wrap(function()
+        while true do
+          local items = assert(method(self, {
+            limit = per_page,
+            starting_after = last_id
+          }))
+          local _list_0 = items.data
+          for _index_0 = 1, #_list_0 do
+            local a = _list_0[_index_0]
+            last_id = a.id
+            coroutine.yield(a)
+          end
+          if not (items.has_more) then
+            break
+          end
+          if not (last_id) then
+            break
+          end
+        end
+      end)
+    end,
     charge = function(self, opts)
       local access_token, card, amount, currency, description, fee
       access_token, card, amount, currency, description, fee = opts.access_token, opts.card, opts.amount, opts.currency, opts.description, opts.fee
@@ -166,28 +192,7 @@ do
       return self:_request("GET", "accounts", opts)
     end,
     each_account = function(self)
-      local last_id
-      return coroutine.wrap(function()
-        while true do
-          print("getting page", last_id)
-          local accounts = assert(self:list_accounts({
-            limit = 100,
-            starting_after = last_id
-          }))
-          local _list_0 = accounts.data
-          for _index_0 = 1, #_list_0 do
-            local a = _list_0[_index_0]
-            last_id = a.id
-            coroutine.yield(a)
-          end
-          if not (accounts.has_more) then
-            break
-          end
-          if not (last_id) then
-            break
-          end
-        end
-      end)
+      return self:_iterate_resource(self.list_accounts)
     end,
     list_products = function(self)
       return self:_request("GET", "products")
