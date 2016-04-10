@@ -162,8 +162,32 @@ do
     update_account = function(self, account_id, opts)
       return self:_request("POST", "accounts/" .. tostring(account_id), opts)
     end,
-    list_accounts = function(self)
-      return self:_request("GET", "accounts")
+    list_accounts = function(self, opts)
+      return self:_request("GET", "accounts", opts)
+    end,
+    each_account = function(self)
+      local last_id
+      return coroutine.wrap(function()
+        while true do
+          print("getting page", last_id)
+          local accounts = assert(self:list_accounts({
+            limit = 100,
+            starting_after = last_id
+          }))
+          local _list_0 = accounts.data
+          for _index_0 = 1, #_list_0 do
+            local a = _list_0[_index_0]
+            last_id = a.id
+            coroutine.yield(a)
+          end
+          if not (accounts.has_more) then
+            break
+          end
+          if not (last_id) then
+            break
+          end
+        end
+      end)
     end,
     list_products = function(self)
       return self:_request("GET", "products")

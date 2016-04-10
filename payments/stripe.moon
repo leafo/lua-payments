@@ -175,8 +175,24 @@ class Stripe extends require "payments.base_client"
   update_account: (account_id, opts) =>
     @_request "POST", "accounts/#{account_id}", opts
 
-  list_accounts: =>
-    @_request "GET", "accounts"
+  list_accounts: (opts) =>
+    @_request "GET", "accounts", opts
+
+  each_account: =>
+    local last_id
+    coroutine.wrap ->
+      while true
+        accounts = assert @list_accounts {
+          limit: 100
+          starting_after: last_id
+        }
+
+        for a in *accounts.data
+          last_id = a.id
+          coroutine.yield a
+
+        break unless accounts.has_more
+        break unless last_id
 
   list_products: =>
     @_request "GET", "products"
