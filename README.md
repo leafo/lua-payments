@@ -3,6 +3,12 @@
 Bindings to various payment provider APIs for use in Lua (with OpenResty or
 anything that supports LuaSocket)
 
+The following APIs are supported:
+
+* Stripe
+* PayPal Express Checkout
+* PayPal Adaptive Payments
+* PayPal REST
 
 ## Examples
 
