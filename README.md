@@ -164,3 +164,20 @@ local result, err = client:charge({
 })
 ```
 
+Resouces can be created, updated, and deleted:
+
+```lua
+
+local customer = client:create_customer({
+  email = "loaf@itch.zone"
+})
+
+client:update_customer(customer.id, {
+  account_balance = 23023
+})
+
+client:delete_customer(customer.id)
+
+```
+
+
