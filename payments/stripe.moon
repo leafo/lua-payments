@@ -221,8 +221,7 @@ class Stripe extends require "payments.base_client"
 
   -- this is just for development to fill the test account
   fill_test_balance: (amount=50000) =>
-    config = require("lapis.config").get!
-    assert config._name == "development", "can only fill account in development"
+    assert @client_secret\match("^sk_test_"), "can only fill account in test"
 
     @_request "POST", "charges", {
       :amount

@@ -167,8 +167,7 @@ do
       if amount == nil then
         amount = 50000
       end
-      local config = require("lapis.config").get()
-      assert(config._name == "development", "can only fill account in development")
+      assert(self.client_secret:match("^sk_test_"), "can only fill account in test")
       return self:_request("POST", "charges", {
         amount = amount,
         currency = "USD",
