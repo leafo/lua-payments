@@ -1,6 +1,9 @@
 import types from require "tableshape"
 import extract_params, make_http, assert_shape from require "spec.helpers"
 
+assert_shape = (obj, shape) ->
+  assert shape obj
+
 describe "stripe", ->
   it "creates a stripe object", ->
     import Stripe from require "payments.stripe"
@@ -12,11 +15,38 @@ describe "stripe", ->
 
   describe "with client", ->
     local stripe, http_requests, http_fn
+    local api_response
+
+    api_request = (opts={}, fn) ->
+      spec_name = assert opts.name or opts.path, "missing spec name"
+      it spec_name, ->
+        response = { fn! }
+
+        assert.same {
+          opts.response_object or {hello: "world"}
+          200
+        }, response
+
+        req = assert http_requests[#http_requests], "expected http request"
+
+        assert_shape req, types.shape {
+          method: opts.method or "GET"
+          url: "https://api.stripe.com/v1#{assert opts.path, "missing path"}"
+
+          sink: types.function
+
+          headers: types.shape {
+            "Host": "api.stripe.com"
+            "Content-Type": "application/x-www-form-urlencoded"
+            "Authorization": "Basic Y2xpZW50X3NlY3JldDo="
+          }
+        }
 
     before_each ->
+      api_response = nil -- reset to default
       import Stripe from require "payments.stripe"
       http_fn, http_requests = make_http (req) ->
-        req.sink '{"hello": "world"}'
+        req.sink api_response or '{"hello": "world"}'
 
       stripe = assert Stripe {
         client_id: "client_id"
@@ -24,76 +54,33 @@ describe "stripe", ->
       }
       stripe.http = http_fn
 
-    it "list_disputes", ->
-      assert.same {
-        {hello: "world"}
-        200
-      }, {
-        stripe\list_disputes limit: 20
-      }
-
-      req = assert http_requests[1]
-
-      req_shape = types.shape {
-        method: "GET"
-        url: "https://api.stripe.com/v1/disputes?limit=20"
-        sink: types.function
-
-        headers: types.shape {
-          "Host": "api.stripe.com"
-          "Content-Type": "application/x-www-form-urlencoded"
-          "Authorization": "Basic Y2xpZW50X3NlY3JldDo="
+    describe "disputes", ->
+      api_request {
+        path: "/disputes?limit=20"
+      }, ->
+        stripe\list_disputes {
+          limit: 20
         }
-      }
 
-      assert req_shape req
+    describe "charges", ->
+      api_request {
+        path: "/accounts"
+      }, ->
+        stripe\list_accounts!
 
-    it "get_charge", ->
-      assert.same {
-        {hello: "world"}
-        200
-      }, {
-        stripe\get_charge "123"
-      }
+      api_request {
+        path: "/charges/cr_cool"
+      }, ->
+        stripe\get_charge "cr_cool"
 
+    describe "accounts", ->
+      api_request {
+        path: "/accounts"
+      }, ->
+        stripe\list_accounts!
 
-      req = assert http_requests[1]
-
-      req_shape = types.shape {
-        method: "GET"
-        url: "https://api.stripe.com/v1/charges/123"
-        sink: types.function
-
-        headers: types.shape {
-          "Host": "api.stripe.com"
-          "Content-Type": "application/x-www-form-urlencoded"
-          "Authorization": "Basic Y2xpZW50X3NlY3JldDo="
-        }
-      }
-
-      assert req_shape req
-    it "list_charges", ->
-      assert.same {
-        {hello: "world"}
-        200
-      }, {
-        stripe\list_charges!
-      }
-
-      req = assert http_requests[1]
-
-      req_shape = types.shape {
-        method: "GET"
-        url: "https://api.stripe.com/v1/charges"
-        sink: types.function
-
-        headers: types.shape {
-          "Host": "api.stripe.com"
-          "Content-Type": "application/x-www-form-urlencoded"
-          "Authorization": "Basic Y2xpZW50X3NlY3JldDo="
-        }
-      }
-
-      assert req_shape req
-
+      api_request {
+        path: "/accounts/act_leafo"
+      }, ->
+        stripe\get_account "act_leafo"
 
