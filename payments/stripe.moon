@@ -9,34 +9,36 @@ import encode_base64 from require "lapis.util.encoding"
 class Stripe extends require "payments.base_client"
   api_url: "https://api.stripe.com/v1/"
 
-  resource = (name, resource_opts) ->
+  resource = (name, resource_opts={}) ->
     singular = resource_opts.singular or name\gsub "s$", ""
 
     list_method = "list_#{name}"
 
-    @__base[list_method] = (opts) =>
-      @_request "GET", name, opts
+    unless resource_opts.get == false
+      @__base[list_method] or= (opts) =>
+        @_request "GET", name, opts
 
-    @__base["each_#{name}"] = =>
-      @_iterate_resource @[list_method]
+      @__base["each_#{name}"] or= =>
+        @_iterate_resource @[list_method]
 
-    @__base["get_#{singular}"] = (id) =>
-      @_request "GET", "#{name}/#{id}"
+      @__base["get_#{singular}"] or= (id) =>
+        @_request "GET", "#{name}/#{id}"
 
-    @__base["update_#{singular}"] = (id, opts) =>
-      if resource_opts.update
-        opts = resource_opts.update @, opts
+    unless resource_opts.edit == false
+      @__base["update_#{singular}"] or= (id, opts) =>
+        if resource_opts.update
+          opts = resource_opts.update @, opts
 
-      @_request "POST", "#{name}/#{id}", opts
+        @_request "POST", "#{name}/#{id}", opts
 
-    @__base["delete_#{singular}"] = (id) =>
-      @_request "DELETE", "#{name}/#{id}", opts
+      @__base["delete_#{singular}"] or= (id) =>
+        @_request "DELETE", "#{name}/#{id}", opts
 
-    @__base["create_#{singular}"] = (opts) =>
-      if resource_opts.create
-        opts = resource_opts.create @, opts
+      @__base["create_#{singular}"] or= (opts) =>
+        if resource_opts.create
+          opts = resource_opts.create @, opts
 
-      @_request "POST", name, opts
+        @_request "POST", name, opts
 
   new: (opts) =>
     @client_id = assert opts.client_id, "missing client id"
@@ -167,6 +169,14 @@ class Stripe extends require "payments.base_client"
       opts
   }
 
+  resource "customers"
+
+  resource "charges", edit: false
+  resource "disputes", edit: false
+  resource "refunds", edit: false
+  resource "products", edit: false
+  resource "transfers", edit: false
+
   -- charge a card with amount cents
   charge: (opts) =>
     { :access_token, :card, :amount, :currency, :description, :fee } = opts
@@ -179,35 +189,14 @@ class Stripe extends require "payments.base_client"
       :card, :amount, :description, :currency, :application_fee
     }, access_token
 
-  create_customer: (opts) =>
-    @_request "POST", "customers", opts
-
-  list_customers: (opts) =>
-    @_request "GET", "customers", opts
-
-  get_customer: (customer_id, opts) =>
-    @_request "GET", "customers/#{customer_id}", opts
-
-  update_customer: (customer_id, opts) =>
-    @_request "POST", "customers/#{customer_id}", opts
-
-  delete_customer: (customer_id) =>
-    @_request "DELETE", "customers/#{customer_id}"
-
   create_card: (customer_id, opts) =>
     @_request "POST", "customers/#{customer_id}/sources", opts
 
   delete_customer_card: (customer_id, card_id, opts) =>
     @_request "DELETE", "customers/#{customer_id}/sources/#{card_id}", opts
 
-  list_charges: (opts) =>
-    @_request "GET", "charges", opts
-
   get_token: (token_id) =>
     @_request "GET", "tokens/#{token_id}"
-
-  get_charge: (charge_id) =>
-    @_request "GET", "charges/#{charge_id}"
 
   refund_charge: (charge_id) =>
     @_request "POST", "refunds", {
@@ -218,18 +207,6 @@ class Stripe extends require "payments.base_client"
     @_request "POST", "charges/#{charge_id}", {
       "fraud_details[user_report]": "fraudulent"
     }
-
-  list_products: (opts) =>
-    @_request "GET", "products", opts
-
-  list_transfers: (opts) =>
-    @_request "GET", "transfers", opts
-
-  list_disputes: (opts) =>
-    @_request "GET", "disputes", opts
-
-  list_refunds: (opts) =>
-    @_request "GET", "refunds", opts
 
   transfer: (destination, currency, amount) =>
     assert "USD" == currency, "usd only for now"

@@ -135,35 +135,14 @@ do
         application_fee = application_fee
       }, access_token)
     end,
-    create_customer = function(self, opts)
-      return self:_request("POST", "customers", opts)
-    end,
-    list_customers = function(self, opts)
-      return self:_request("GET", "customers", opts)
-    end,
-    get_customer = function(self, customer_id, opts)
-      return self:_request("GET", "customers/" .. tostring(customer_id), opts)
-    end,
-    update_customer = function(self, customer_id, opts)
-      return self:_request("POST", "customers/" .. tostring(customer_id), opts)
-    end,
-    delete_customer = function(self, customer_id)
-      return self:_request("DELETE", "customers/" .. tostring(customer_id))
-    end,
     create_card = function(self, customer_id, opts)
       return self:_request("POST", "customers/" .. tostring(customer_id) .. "/sources", opts)
     end,
     delete_customer_card = function(self, customer_id, card_id, opts)
       return self:_request("DELETE", "customers/" .. tostring(customer_id) .. "/sources/" .. tostring(card_id), opts)
     end,
-    list_charges = function(self, opts)
-      return self:_request("GET", "charges", opts)
-    end,
     get_token = function(self, token_id)
       return self:_request("GET", "tokens/" .. tostring(token_id))
-    end,
-    get_charge = function(self, charge_id)
-      return self:_request("GET", "charges/" .. tostring(charge_id))
     end,
     refund_charge = function(self, charge_id)
       return self:_request("POST", "refunds", {
@@ -174,18 +153,6 @@ do
       return self:_request("POST", "charges/" .. tostring(charge_id), {
         ["fraud_details[user_report]"] = "fraudulent"
       })
-    end,
-    list_products = function(self, opts)
-      return self:_request("GET", "products", opts)
-    end,
-    list_transfers = function(self, opts)
-      return self:_request("GET", "transfers", opts)
-    end,
-    list_disputes = function(self, opts)
-      return self:_request("GET", "disputes", opts)
-    end,
-    list_refunds = function(self, opts)
-      return self:_request("GET", "refunds", opts)
     end,
     transfer = function(self, destination, currency, amount)
       assert("USD" == currency, "usd only for now")
@@ -247,31 +214,38 @@ do
   _base_0.__class = _class_0
   local self = _class_0
   resource = function(name, resource_opts)
+    if resource_opts == nil then
+      resource_opts = { }
+    end
     local singular = resource_opts.singular or name:gsub("s$", "")
     local list_method = "list_" .. tostring(name)
-    self.__base[list_method] = function(self, opts)
-      return self:_request("GET", name, opts)
-    end
-    self.__base["each_" .. tostring(name)] = function(self)
-      return self:_iterate_resource(self[list_method])
-    end
-    self.__base["get_" .. tostring(singular)] = function(self, id)
-      return self:_request("GET", tostring(name) .. "/" .. tostring(id))
-    end
-    self.__base["update_" .. tostring(singular)] = function(self, id, opts)
-      if resource_opts.update then
-        opts = resource_opts.update(self, opts)
+    if not (resource_opts.get == false) then
+      self.__base[list_method] = self.__base[list_method] or function(self, opts)
+        return self:_request("GET", name, opts)
       end
-      return self:_request("POST", tostring(name) .. "/" .. tostring(id), opts)
-    end
-    self.__base["delete_" .. tostring(singular)] = function(self, id)
-      return self:_request("DELETE", tostring(name) .. "/" .. tostring(id), opts)
-    end
-    self.__base["create_" .. tostring(singular)] = function(self, opts)
-      if resource_opts.create then
-        opts = resource_opts.create(self, opts)
+      self.__base["each_" .. tostring(name)] = self.__base["each_"] or function(self)
+        return self:_iterate_resource(self[list_method])
       end
-      return self:_request("POST", name, opts)
+      self.__base["get_" .. tostring(singular)] = self.__base["get_"] or function(self, id)
+        return self:_request("GET", tostring(name) .. "/" .. tostring(id))
+      end
+    end
+    if not (resource_opts.edit == false) then
+      self.__base["update_" .. tostring(singular)] = self.__base["update_"] or function(self, id, opts)
+        if resource_opts.update then
+          opts = resource_opts.update(self, opts)
+        end
+        return self:_request("POST", tostring(name) .. "/" .. tostring(id), opts)
+      end
+      self.__base["delete_" .. tostring(singular)] = self.__base["delete_"] or function(self, id)
+        return self:_request("DELETE", tostring(name) .. "/" .. tostring(id), opts)
+      end
+      self.__base["create_" .. tostring(singular)] = self.__base["create_"] or function(self, opts)
+        if resource_opts.create then
+          opts = resource_opts.create(self, opts)
+        end
+        return self:_request("POST", name, opts)
+      end
     end
   end
   resource("accounts", {
@@ -283,6 +257,22 @@ do
       assert(opts.email, "missing country")
       return opts
     end
+  })
+  resource("customers")
+  resource("charges", {
+    edit = false
+  })
+  resource("disputes", {
+    edit = false
+  })
+  resource("refunds", {
+    edit = false
+  })
+  resource("products", {
+    edit = false
+  })
+  resource("transfers", {
+    edit = false
   })
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
