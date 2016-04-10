@@ -9,6 +9,35 @@ import encode_base64 from require "lapis.util.encoding"
 class Stripe extends require "payments.base_client"
   api_url: "https://api.stripe.com/v1/"
 
+  resource = (name, resource_opts) ->
+    singular = resource_opts.singular or name\gsub "s$", ""
+
+    list_method = "list_#{name}"
+
+    @__base[list_method] = (opts) =>
+      @_request "GET", name, opts
+
+    @__base["each_#{name}"] = =>
+      @_iterate_resource @[list_method]
+
+    @__base["get_#{singular}"] = (id) =>
+      @_request "GET", "#{name}/#{id}"
+
+    @__base["update_#{singular}"] = (id, opts) =>
+      if resource_opts.update
+        opts = resource_opts.update @, opts
+
+      @_request "POST", "#{name}/#{id}", opts
+
+    @__base["delete_#{singular}"] = (id) =>
+      @_request "DELETE", "#{name}/#{id}", opts
+
+    @__base["create_#{singular}"] = (opts) =>
+      if resource_opts.create
+        opts = resource_opts.create @, opts
+
+      @_request "POST", name, opts
+
   new: (opts) =>
     @client_id = assert opts.client_id, "missing client id"
     @client_secret = assert opts.client_secret, "missing client secret"
@@ -129,6 +158,14 @@ class Stripe extends require "payments.base_client"
         break unless items.has_more
         break unless last_id
 
+  resource "accounts", {
+    create: (opts) =>
+      opts.managed = true if opts.managed == nil
+      assert opts.country, "missing country"
+      assert opts.email, "missing country"
+
+      opts
+  }
 
   -- charge a card with amount cents
   charge: (opts) =>
@@ -182,27 +219,8 @@ class Stripe extends require "payments.base_client"
       "fraud_details[user_report]": "fraudulent"
     }
 
-  create_account: (opts={}) =>
-    opts.managed = true if opts.managed == nil
-    assert opts.country, "missing country"
-    assert opts.email, "missing country"
-
-    @_request "POST", "accounts", opts
-
-  update_account: (account_id, opts) =>
-    @_request "POST", "accounts/#{account_id}", opts
-
-  list_accounts: (opts) =>
-    @_request "GET", "accounts", opts
-
-  each_account: =>
-    @_iterate_resource @list_accounts
-
   list_products: (opts) =>
     @_request "GET", "products", opts
-
-  get_account: (account_id) =>
-    @_request "GET", "accounts/#{account_id}"
 
   list_transfers: (opts) =>
     @_request "GET", "transfers", opts

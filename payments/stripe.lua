@@ -10,6 +10,7 @@ encode_base64 = require("lapis.util.encoding").encode_base64
 local Stripe
 do
   local _class_0
+  local resource
   local _parent_0 = require("payments.base_client")
   local _base_0 = {
     api_url = "https://api.stripe.com/v1/",
@@ -174,31 +175,8 @@ do
         ["fraud_details[user_report]"] = "fraudulent"
       })
     end,
-    create_account = function(self, opts)
-      if opts == nil then
-        opts = { }
-      end
-      if opts.managed == nil then
-        opts.managed = true
-      end
-      assert(opts.country, "missing country")
-      assert(opts.email, "missing country")
-      return self:_request("POST", "accounts", opts)
-    end,
-    update_account = function(self, account_id, opts)
-      return self:_request("POST", "accounts/" .. tostring(account_id), opts)
-    end,
-    list_accounts = function(self, opts)
-      return self:_request("GET", "accounts", opts)
-    end,
-    each_account = function(self)
-      return self:_iterate_resource(self.list_accounts)
-    end,
     list_products = function(self, opts)
       return self:_request("GET", "products", opts)
-    end,
-    get_account = function(self, account_id)
-      return self:_request("GET", "accounts/" .. tostring(account_id))
     end,
     list_transfers = function(self, opts)
       return self:_request("GET", "transfers", opts)
@@ -267,6 +245,45 @@ do
     end
   })
   _base_0.__class = _class_0
+  local self = _class_0
+  resource = function(name, resource_opts)
+    local singular = resource_opts.singular or name:gsub("s$", "")
+    local list_method = "list_" .. tostring(name)
+    self.__base[list_method] = function(self, opts)
+      return self:_request("GET", name, opts)
+    end
+    self.__base["each_" .. tostring(name)] = function(self)
+      return self:_iterate_resource(self[list_method])
+    end
+    self.__base["get_" .. tostring(singular)] = function(self, id)
+      return self:_request("GET", tostring(name) .. "/" .. tostring(id))
+    end
+    self.__base["update_" .. tostring(singular)] = function(self, id, opts)
+      if resource_opts.update then
+        opts = resource_opts.update(self, opts)
+      end
+      return self:_request("POST", tostring(name) .. "/" .. tostring(id), opts)
+    end
+    self.__base["delete_" .. tostring(singular)] = function(self, id)
+      return self:_request("DELETE", tostring(name) .. "/" .. tostring(id), opts)
+    end
+    self.__base["create_" .. tostring(singular)] = function(self, opts)
+      if resource_opts.create then
+        opts = resource_opts.create(self, opts)
+      end
+      return self:_request("POST", name, opts)
+    end
+  end
+  resource("accounts", {
+    create = function(self, opts)
+      if opts.managed == nil then
+        opts.managed = true
+      end
+      assert(opts.country, "missing country")
+      assert(opts.email, "missing country")
+      return opts
+    end
+  })
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
   end
