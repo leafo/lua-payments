@@ -118,3 +118,49 @@ local payments = client:payment_resources()
 ```
 
 
+### Stripe
+
+Create the API client:
+
+```lua
+
+local Stripe = require("payments.stripe").Stripe
+
+local client = Stripe({
+  client_id = "ca_12345",
+  client_secret = "sk_test_helloworld",
+  publishable_key = "pk_test_blahblahblahb"
+})
+```
+
+Fetch some data:
+
+```lua
+
+-- each resource exposed by Stripe API has a respective list_, get_, and each_
+-- method in this library:
+
+local result = client:list_charges()
+local result = client:list_accounts({ limit = "100 "})
+local result = client:list_disputes({ starting_after = "dsp_12343" })
+
+-- get a single item
+local result = client:get_customer("cust_12o323480")
+
+-- iterate through every refund, fetching each page as needed
+for refund in client:each_refund() do
+  print(refund.id)
+end
+```
+
+Create a charge:
+
+```lua
+local result, err = client:charge({
+  card = "tok_232u302"
+  amount = "5.99",
+  currency = "USD",
+  description = "indie games"
+})
+```
+
