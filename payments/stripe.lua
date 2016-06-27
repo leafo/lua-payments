@@ -120,8 +120,8 @@ do
       end)
     end,
     charge = function(self, opts)
-      local access_token, card, amount, currency, description, fee
-      access_token, card, amount, currency, description, fee = opts.access_token, opts.card, opts.amount, opts.currency, opts.description, opts.fee
+      local access_token, card, customer, source, amount, currency, description, fee
+      access_token, card, customer, source, amount, currency, description, fee = opts.access_token, opts.card, opts.customer, opts.source, opts.amount, opts.currency, opts.description, opts.fee
       assert(tonumber(amount), "missing amount")
       local application_fee
       if fee and fee > 0 then
@@ -129,6 +129,8 @@ do
       end
       return self:_request("POST", "charges", {
         card = card,
+        customer = customer,
+        source = source,
         amount = amount,
         description = description,
         currency = currency,

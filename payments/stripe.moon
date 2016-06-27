@@ -180,14 +180,18 @@ class Stripe extends require "payments.base_client"
   -- charge a card with amount cents
   -- TODO: replace this with resource
   charge: (opts) =>
-    { :access_token, :card, :amount, :currency, :description, :fee } = opts
+    {
+      :access_token, :card, :customer, :source, :amount, :currency,
+      :description, :fee
+    } = opts
 
     assert tonumber(amount), "missing amount"
 
     application_fee = if fee and fee > 0 then fee
 
     @_request "POST", "charges", {
-      :card, :amount, :description, :currency, :application_fee
+      :card, :customer, :source, :amount, :description, :currency,
+      :application_fee
     }, access_token
 
   create_card: (customer_id, opts) =>
