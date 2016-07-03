@@ -197,6 +197,12 @@ class Stripe extends require "payments.base_client"
   create_card: (customer_id, opts) =>
     @_request "POST", "customers/#{customer_id}/sources", opts
 
+  update_card: (customer_id, card_id, opts) =>
+    @_request "POST", "customers/#{customer_id}/sources/#{card_id}", opts
+
+  get_card: (customer_id, card_id, opts) =>
+    @_request "GET", "customers/#{customer_id}/sources/#{card_id}", opts
+
   delete_customer_card: (customer_id, card_id, opts) =>
     @_request "DELETE", "customers/#{customer_id}/sources/#{card_id}", opts
 

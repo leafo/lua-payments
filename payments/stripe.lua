@@ -140,6 +140,12 @@ do
     create_card = function(self, customer_id, opts)
       return self:_request("POST", "customers/" .. tostring(customer_id) .. "/sources", opts)
     end,
+    update_card = function(self, customer_id, card_id, opts)
+      return self:_request("POST", "customers/" .. tostring(customer_id) .. "/sources/" .. tostring(card_id), opts)
+    end,
+    get_card = function(self, customer_id, card_id, opts)
+      return self:_request("GET", "customers/" .. tostring(customer_id) .. "/sources/" .. tostring(card_id), opts)
+    end,
     delete_customer_card = function(self, customer_id, card_id, opts)
       return self:_request("DELETE", "customers/" .. tostring(customer_id) .. "/sources/" .. tostring(card_id), opts)
     end,
