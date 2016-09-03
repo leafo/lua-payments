@@ -49,7 +49,7 @@ do
       return self:_extract_error(res, res_headers)
     end,
     _extract_error = function(self, res, headers)
-      if res.ACK ~= "Success" then
+      if res.ACK ~= "Success" and res.ACK ~= "SuccessWithWarning" then
         return nil, res.L_LONGMESSAGE0, res, headers
       end
       return res, headers
@@ -59,8 +59,38 @@ do
         TRANSACTIONID = transaction_id
       }, upper_keys(opts)))
     end,
+    _format_transaction_results = function(self, res)
+      local warning_fields = {
+        longmessage = true,
+        shortmessage = true,
+        severitycode = true,
+        errorcode = true
+      }
+      local other_messages = { }
+      local out = { }
+      for k, val in pairs(res) do
+        local field, id = k:match("L_(.-)(%d+)$")
+        if field then
+          field = field:lower()
+          if warning_fields[field] then
+            other_messages[k] = val
+          else
+            id = tonumber(id) + 1
+            out[id] = out[id] or { }
+            out[id][field] = val
+          end
+        else
+          other_messages[k] = val
+        end
+      end
+      return out, other_messages
+    end,
     transaction_search = function(self, opts)
-      return self:_method("TransactionSearch", upper_keys(opts or { }))
+      local res, rest = self:_method("TransactionSearch", upper_keys(opts or { }))
+      return self:_format_transaction_results(res), rest
+    end,
+    get_transaction_details = function(self, opts)
+      return self:_method("GetTransactionDetails", upper_keys(opts or { }))
     end,
     set_express_checkout = function(self, opts)
       opts = upper_keys(opts)

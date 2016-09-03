@@ -75,7 +75,7 @@ class PayPalExpressCheckout extends require "payments.base_client"
     @_extract_error res, res_headers
 
   _extract_error: (res, headers) =>
-    if res.ACK != "Success"
+    if res.ACK != "Success" and res.ACK != "SuccessWithWarning"
       return nil, res.L_LONGMESSAGE0, res, headers
 
     res, headers
@@ -85,8 +85,37 @@ class PayPalExpressCheckout extends require "payments.base_client"
       TRANSACTIONID: transaction_id
     }, upper_keys opts
 
+  _format_transaction_results: (res) =>
+    warning_fields = {
+      longmessage: true
+      shortmessage: true
+      severitycode: true
+      errorcode: true
+    }
+
+    other_messages = {}
+    out = {}
+    for k, val in pairs res
+      field, id = k\match "L_(.-)(%d+)$"
+      if field
+        field = field\lower!
+        if warning_fields[field]
+          other_messages[k] = val
+        else
+          id = tonumber(id) + 1 -- make 1 indexed
+          out[id] or= {}
+          out[id][field] = val
+      else
+        other_messages[k] = val
+
+    out, other_messages
+
   transaction_search: (opts) =>
-    @_method "TransactionSearch", upper_keys opts or {}
+    res, rest = @_method "TransactionSearch", upper_keys opts or {}
+    @_format_transaction_results(res), rest
+
+  get_transaction_details: (opts) =>
+    @_method "GetTransactionDetails", upper_keys opts or {}
 
   -- amount: 0.00
   set_express_checkout: (opts) =>
