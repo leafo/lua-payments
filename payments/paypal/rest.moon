@@ -104,6 +104,9 @@ class PayPalRest extends require "payments.base_client"
 
     json.decode(concat out), status
 
+  get_payments: (opts) =>
+    @_request "GET", "payments/payment", opts
+
   payout: (opts) =>
     email = assert opts.email, "missing email"
     amount = assert opts.amount, "missing amount"
@@ -133,5 +136,3 @@ class PayPalRest extends require "payments.base_client"
     -- GET /v1/payments/sale/<Transaction-Id>
     @_request "GET", "payments/sale/#{transaction_id}"
 
-  payment_resources: =>
-    @_request "GET", "payments/payment/"

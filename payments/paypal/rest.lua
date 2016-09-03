@@ -83,6 +83,9 @@ do
       })
       return json.decode(concat(out)), status
     end,
+    get_payments = function(self, opts)
+      return self:_request("GET", "payments/payment", opts)
+    end,
     payout = function(self, opts)
       local email = assert(opts.email, "missing email")
       local amount = assert(opts.amount, "missing amount")
@@ -109,9 +112,6 @@ do
     end,
     sale_transaction = function(self, transaction_id)
       return self:_request("GET", "payments/sale/" .. tostring(transaction_id))
-    end,
-    payment_resources = function(self)
-      return self:_request("GET", "payments/payment/")
     end
   }
   _base_0.__index = _base_0

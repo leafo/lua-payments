@@ -57,7 +57,7 @@ describe "paypal", ->
         }) http_requests[2]
 
       it "makes request", ->
-        paypal\payment_resources!
+        paypal\get_payments!
 
         -- auth request, request for api call
         assert.same 2, #http_requests
@@ -65,12 +65,12 @@ describe "paypal", ->
 
         assert_api_requrest http_requests[2], {
           method: "GET"
-          url: "https://api.paypal.com/v1/payments/payment/"
+          url: "https://api.paypal.com/v1/payments/payment"
         }
 
       it "makes doesn't request oauth token twice", ->
-        paypal\payment_resources!
-        paypal\payment_resources!
+        paypal\get_payments!
+        paypal\get_payments!
 
         assert.same 3, #http_requests
         assert_oauth_token_request http_requests[1]
@@ -78,13 +78,13 @@ describe "paypal", ->
         for i=2,3
           assert_api_requrest http_requests[i], {
             method: "GET"
-            url: "https://api.paypal.com/v1/payments/payment/"
+            url: "https://api.paypal.com/v1/payments/payment"
           }
 
       it "fetches new oauth token when expired", ->
-        paypal\payment_resources!
+        paypal\get_payments!
         paypal.last_token_time -= 200
-        paypal\payment_resources!
+        paypal\get_payments!
 
         assert.same 4, #http_requests
         assert_oauth_token_request http_requests[1]
