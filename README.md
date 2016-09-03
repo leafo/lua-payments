@@ -1,5 +1,7 @@
 # Lua Payments
 
+[![Build Status](https://travis-ci.org/leafo/lua-payments.svg?branch=master)](https://travis-ci.org/leafo/lua-payments)
+
 Bindings to various payment provider APIs for use in Lua (with OpenResty or
 anything that supports LuaSocket)
 
