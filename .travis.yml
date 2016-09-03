@@ -17,6 +17,7 @@ before_install:
 install:
   - luarocks install busted
   - luarocks install moonscript
+  - luarocks install tableshape
   - luarocks make
 
 script: 
