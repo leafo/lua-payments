@@ -35,10 +35,10 @@ Create a new purchase page:
 
 ```lua
 local res = assert(client:set_express_checkout({
-  returnurl: "http://leafo.net/success"
-  cancelurl: "http://leafo.net/cancel"
-  brandname: "Purchase something"
-  paymentrequest_0_amt: "$5.99"
+  returnurl = "http://leafo.net/success"
+  cancelurl = "http://leafo.net/cancel"
+  brandname = "Purchase something"
+  paymentrequest_0_amt = "$5.99"
 }))
 
 
