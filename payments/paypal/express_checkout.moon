@@ -125,6 +125,9 @@ class PayPalExpressCheckout extends require "payments.base_client"
   get_express_checkout_details: (token) =>
     @_method "GetExpressCheckoutDetails", TOKEN: token
 
+  get_transaction_details: (id) =>
+    @_method "GetTransactionDetails", TRANSACTIONID: token
+
   do_express_checkout: (token, payerid, amount, opts) =>
     assert valid_amount amount
 
