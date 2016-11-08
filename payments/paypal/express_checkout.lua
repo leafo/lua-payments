@@ -101,11 +101,6 @@ do
         TOKEN = token
       })
     end,
-    get_transaction_details = function(self, id)
-      return self:_method("GetTransactionDetails", {
-        TRANSACTIONID = token
-      })
-    end,
     do_express_checkout = function(self, token, payerid, amount, opts)
       assert(valid_amount(amount))
       return self:_method("DoExpressCheckoutPayment", extend({
