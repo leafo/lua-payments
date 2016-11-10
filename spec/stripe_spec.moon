@@ -127,3 +127,18 @@ describe "stripe", ->
           country: "ARCTIC"
         }
 
+    describe "balance_transactions", ->
+      api_request {
+        method: "GET"
+        path: "/balance/history/txn_hello"
+      }, ->
+        stripe\get_balance_transaction "txn_hello"
+
+      api_request {
+        method: "GET"
+        path: "/balance/history"
+      }, ->
+        stripe\list_balance_transactions!
+
+
+

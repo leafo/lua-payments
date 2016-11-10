@@ -225,16 +225,17 @@ do
       resource_opts = { }
     end
     local singular = resource_opts.singular or name:gsub("s$", "")
+    local api_path = resource_opts.path or name
     local list_method = "list_" .. tostring(name)
     if not (resource_opts.get == false) then
       self.__base[list_method] = self.__base[list_method] or function(self, opts)
-        return self:_request("GET", name, opts)
+        return self:_request("GET", api_path, opts)
       end
       self.__base["each_" .. tostring(singular)] = self.__base["each_"] or function(self)
         return self:_iterate_resource(self[list_method])
       end
       self.__base["get_" .. tostring(singular)] = self.__base["get_"] or function(self, id)
-        return self:_request("GET", tostring(name) .. "/" .. tostring(id))
+        return self:_request("GET", tostring(api_path) .. "/" .. tostring(id))
       end
     end
     if not (resource_opts.edit == false) then
@@ -242,16 +243,16 @@ do
         if resource_opts.update then
           opts = resource_opts.update(self, opts)
         end
-        return self:_request("POST", tostring(name) .. "/" .. tostring(id), opts)
+        return self:_request("POST", tostring(api_path) .. "/" .. tostring(id), opts)
       end
       self.__base["delete_" .. tostring(singular)] = self.__base["delete_"] or function(self, id)
-        return self:_request("DELETE", tostring(name) .. "/" .. tostring(id), opts)
+        return self:_request("DELETE", tostring(api_path) .. "/" .. tostring(id), opts)
       end
       self.__base["create_" .. tostring(singular)] = self.__base["create_"] or function(self, opts)
         if resource_opts.create then
           opts = resource_opts.create(self, opts)
         end
-        return self:_request("POST", name, opts)
+        return self:_request("POST", api_path, opts)
       end
     end
   end
@@ -280,6 +281,10 @@ do
   })
   resource("transfers", {
     edit = false
+  })
+  resource("balance_transactions", {
+    edit = false,
+    path = "balance/history"
   })
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)

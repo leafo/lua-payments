@@ -11,34 +11,35 @@ class Stripe extends require "payments.base_client"
 
   resource = (name, resource_opts={}) ->
     singular = resource_opts.singular or name\gsub "s$", ""
+    api_path = resource_opts.path or name
 
     list_method = "list_#{name}"
 
     unless resource_opts.get == false
       @__base[list_method] or= (opts) =>
-        @_request "GET", name, opts
+        @_request "GET", api_path, opts
 
       @__base["each_#{singular}"] or= =>
         @_iterate_resource @[list_method]
 
       @__base["get_#{singular}"] or= (id) =>
-        @_request "GET", "#{name}/#{id}"
+        @_request "GET", "#{api_path}/#{id}"
 
     unless resource_opts.edit == false
       @__base["update_#{singular}"] or= (id, opts) =>
         if resource_opts.update
           opts = resource_opts.update @, opts
 
-        @_request "POST", "#{name}/#{id}", opts
+        @_request "POST", "#{api_path}/#{id}", opts
 
       @__base["delete_#{singular}"] or= (id) =>
-        @_request "DELETE", "#{name}/#{id}", opts
+        @_request "DELETE", "#{api_path}/#{id}", opts
 
       @__base["create_#{singular}"] or= (opts) =>
         if resource_opts.create
           opts = resource_opts.create @, opts
 
-        @_request "POST", name, opts
+        @_request "POST", api_path, opts
 
   new: (opts) =>
     @client_id = assert opts.client_id, "missing client id"
@@ -176,6 +177,7 @@ class Stripe extends require "payments.base_client"
   resource "refunds", edit: false
   resource "products", edit: false
   resource "transfers", edit: false
+  resource "balance_transactions", edit: false, path: "balance/history"
 
   -- charge a card with amount cents
   -- TODO: replace this with resource
@@ -244,5 +246,6 @@ class Stripe extends require "payments.base_client"
 
   get_balance: =>
     @_request "GET", "balance"
+
 
 { :Stripe }
