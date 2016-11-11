@@ -33,7 +33,7 @@ do
         headers = {
           ["Host"] = assert(parse_url(self.api_url).host, "failed to get host"),
           ["Content-type"] = "application/x-www-form-urlencoded",
-          ["Content-length"] = #body
+          ["Content-length"] = tostring(#body)
         },
         source = ltn12.source.string(body),
         method = "POST",
@@ -127,6 +127,7 @@ do
       local urls = self.opts.sandbox and self.__class.urls.sandbox or self.__class.urls.live
       self.api_url = self.opts.api_url or urls.signature
       self.checkout_url_prefix = self.opts.checkout_url or urls.checkout
+      return _class_0.__parent.__init(self, self.opts)
     end,
     __base = _base_0,
     __name = "PayPalExpressCheckout",

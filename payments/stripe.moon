@@ -45,6 +45,7 @@ class Stripe extends require "payments.base_client"
     @client_id = assert opts.client_id, "missing client id"
     @client_secret = assert opts.client_secret, "missing client secret"
     @publishable_key = opts.publishable_key
+    super opts
 
   calculate_fee: (currency, transactions_count, amount, medium) =>
     switch medium
@@ -94,7 +95,7 @@ class Stripe extends require "payments.base_client"
       headers: {
         "Host": assert parse_url(connect_url).host, "failed to get host"
         "Content-Type": "application/x-www-form-urlencoded"
-        "Content-length": body and #body or nil
+        "Content-length": body and tostring(#body) or nil
       }
 
       source: ltn12.source.string body
@@ -120,8 +121,10 @@ class Stripe extends require "payments.base_client"
       "Host": assert parse_url(@api_url).host, "failed to get host"
       "Authorization": "Basic " .. encode_base64 access_token .. ":"
       "Content-Type": "application/x-www-form-urlencoded"
-      "Content-length": body and #body or nil
+      "Content-length": body and tostring(#body) or nil
     }
+
+    require("moon").p headers
 
     url = @api_url .. path
     if method == "GET" and params

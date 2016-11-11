@@ -1,6 +1,11 @@
 class BaseClient
+  new: (opts) =>
+    if opts
+      @http_provider = opts.http_provider
+
   http: =>
     unless @_http
+      -- for cqeuues "http.compat.socket"
       @http_provider or= if ngx
         "lapis.nginx.http"
       else

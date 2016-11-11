@@ -39,7 +39,7 @@ do
         source = ltn12.source.string(body),
         headers = {
           ["Host"] = host,
-          ["Content-length"] = #body,
+          ["Content-length"] = tostring(#body),
           ["Authorization"] = "Basic " .. tostring(encode_base64(tostring(self.client_id) .. ":" .. tostring(self.secret))),
           ["Content-Type"] = "application/x-www-form-urlencoded",
           ["Accept"] = "application/json",
@@ -67,7 +67,7 @@ do
       local host = assert(parse_url(self.url).host)
       local headers = {
         ["Host"] = host,
-        ["Content-length"] = body and #body or nil,
+        ["Content-length"] = body and tostring(#body) or nil,
         ["Authorization"] = "Bearer " .. tostring(self.access_token),
         ["Content-Type"] = "application/json",
         ["Accept"] = "application/json",
@@ -121,6 +121,7 @@ do
       self.url = opts.sandbox and self.__class.urls.sandbox or self.__class.urls.default
       self.client_id = assert(opts.client_id, "missing client id")
       self.secret = assert(opts.secret, "missing secret")
+      return _class_0.__parent.__init(self, opts)
     end,
     __base = _base_0,
     __name = "PayPalRest",

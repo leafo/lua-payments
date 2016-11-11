@@ -34,7 +34,7 @@ do
       local parse_url = require("socket.url").parse
       local host = assert(parse_url(self.api_url).host)
       headers["Host"] = host
-      headers["Content-length"] = #body
+      headers["Content-length"] = tostring(#body)
       local out = { }
       local _, code, res_headers = assert(self:http().request({
         headers = headers,
@@ -160,6 +160,7 @@ do
       local urls = self.opts.sandbox and self.__class.urls.sandbox or self.__class.urls.live
       self.api_url = self.opts.api_url or urls.api
       self.base_url = self.opts.base_url or urls.base
+      return _class_0.__parent.__init(self, self.opts)
     end,
     __base = _base_0,
     __name = "PayPalAdaptive",

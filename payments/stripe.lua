@@ -43,7 +43,7 @@ do
         headers = {
           ["Host"] = assert(parse_url(connect_url).host, "failed to get host"),
           ["Content-Type"] = "application/x-www-form-urlencoded",
-          ["Content-length"] = body and #body or nil
+          ["Content-length"] = body and tostring(#body) or nil
         },
         source = ltn12.source.string(body),
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
@@ -70,8 +70,9 @@ do
         ["Host"] = assert(parse_url(self.api_url).host, "failed to get host"),
         ["Authorization"] = "Basic " .. encode_base64(access_token .. ":"),
         ["Content-Type"] = "application/x-www-form-urlencoded",
-        ["Content-length"] = body and #body or nil
+        ["Content-length"] = body and tostring(#body) or nil
       }
+      require("moon").p(headers)
       local url = self.api_url .. path
       if method == "GET" and params then
         url = url .. "?" .. tostring(encode_query_string(params))
@@ -199,6 +200,7 @@ do
       self.client_id = assert(opts.client_id, "missing client id")
       self.client_secret = assert(opts.client_secret, "missing client secret")
       self.publishable_key = opts.publishable_key
+      return _class_0.__parent.__init(self, opts)
     end,
     __base = _base_0,
     __name = "Stripe",

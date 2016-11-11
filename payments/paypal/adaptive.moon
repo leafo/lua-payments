@@ -36,6 +36,7 @@ class PayPalAdaptive extends require "payments.base_client"
     urls = @opts.sandbox and @@urls.sandbox or @@urls.live
     @api_url = @opts.api_url or urls.api
     @base_url = @opts.base_url or urls.base
+    super @opts
 
   _method: (action, params) =>
     headers = {
@@ -56,7 +57,7 @@ class PayPalAdaptive extends require "payments.base_client"
     parse_url = require("socket.url").parse
     host = assert parse_url(@api_url).host
     headers["Host"] = host
-    headers["Content-length"] = #body
+    headers["Content-length"] = tostring #body
 
     out = {}
     _, code, res_headers = assert @http!.request {

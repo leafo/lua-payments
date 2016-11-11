@@ -22,7 +22,11 @@ do
   }
   _base_0.__index = _base_0
   _class_0 = setmetatable({
-    __init = function() end,
+    __init = function(self, opts)
+      if opts then
+        self.http_provider = opts.http_provider
+      end
+    end,
     __base = _base_0,
     __name = "BaseClient"
   }, {

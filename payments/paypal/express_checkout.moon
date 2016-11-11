@@ -40,6 +40,7 @@ class PayPalExpressCheckout extends require "payments.base_client"
     urls = @opts.sandbox and @@urls.sandbox or @@urls.live
     @api_url = @opts.api_url or urls.signature
     @checkout_url_prefix = @opts.checkout_url or urls.checkout
+    super @opts
 
   _method: (name, params) =>
     params.METHOD = name
@@ -58,7 +59,7 @@ class PayPalExpressCheckout extends require "payments.base_client"
       headers: {
         "Host": assert parse_url(@api_url).host, "failed to get host"
         "Content-type": "application/x-www-form-urlencoded"
-        "Content-length": #body
+        "Content-length": tostring #body
       }
 
       source: ltn12.source.string body

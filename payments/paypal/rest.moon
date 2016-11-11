@@ -21,6 +21,7 @@ class PayPalRest extends require "payments.base_client"
     @url = opts.sandbox and @@urls.sandbox or @@urls.default
     @client_id = assert opts.client_id, "missing client id"
     @secret = assert opts.secret, "missing secret"
+    super opts
 
   format_price: (...) => format_price ...
 
@@ -49,7 +50,7 @@ class PayPalRest extends require "payments.base_client"
       source: ltn12.source.string(body)
       headers: {
         "Host": host
-        "Content-length": #body
+        "Content-length": tostring #body
         "Authorization": "Basic #{encode_base64 "#{@client_id}:#{@secret}"}"
         "Content-Type": "application/x-www-form-urlencoded"
         "Accept": "application/json"
@@ -84,7 +85,7 @@ class PayPalRest extends require "payments.base_client"
 
     headers = {
       "Host": host
-      "Content-length": body and #body or nil
+      "Content-length": body and tostring(#body) or nil
       "Authorization": "Bearer #{@access_token}"
       "Content-Type": "application/json"
       "Accept": "application/json"
