@@ -20,7 +20,7 @@ class Stripe extends require "payments.base_client"
         @_request "GET", api_path, opts
 
       @__base["each_#{singular}"] or= (opts) =>
-        @_iterate_resource @[list_method], nil, opts
+        @_iterate_resource @[list_method], opts
 
       @__base["get_#{singular}"] or= (id, opts) =>
         @_request "GET", "#{api_path}/#{id}", opts
@@ -145,12 +145,12 @@ class Stripe extends require "payments.base_client"
     else
       res, status
 
-  _iterate_resource: (method, per_page=50, opts) =>
+  _iterate_resource: (method, opts) =>
     local last_id
     coroutine.wrap ->
       while true
         iteration_opts = {
-          limit: per_page
+          limit: 50
           starting_after: last_id
         }
 

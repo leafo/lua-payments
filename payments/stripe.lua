@@ -93,15 +93,12 @@ do
         return res, status
       end
     end,
-    _iterate_resource = function(self, method, per_page, opts)
-      if per_page == nil then
-        per_page = 50
-      end
+    _iterate_resource = function(self, method, opts)
       local last_id
       return coroutine.wrap(function()
         while true do
           local iteration_opts = {
-            limit = per_page,
+            limit = 50,
             starting_after = last_id
           }
           if opts then
@@ -238,7 +235,7 @@ do
         return self:_request("GET", api_path, opts)
       end
       self.__base["each_" .. tostring(singular)] = self.__base["each_"] or function(self, opts)
-        return self:_iterate_resource(self[list_method], nil, opts)
+        return self:_iterate_resource(self[list_method], opts)
       end
       self.__base["get_" .. tostring(singular)] = self.__base["get_"] or function(self, id, opts)
         return self:_request("GET", tostring(api_path) .. "/" .. tostring(id), opts)
