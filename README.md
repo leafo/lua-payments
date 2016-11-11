@@ -7,10 +7,10 @@ Lapis or anything that supports LuaSocket or cqueues)
 
 The following APIs are supported:
 
-* Stripe
-* PayPal Express Checkout
-* PayPal Adaptive Payments
-* PayPal REST
+* [Stripe](#stripe)
+* [PayPal Express Checkout](#paypal-express-checkout)
+* [PayPal Adaptive Payments](#paypal-adaptive-payments)
+* [PayPal REST](#paypal-rest-api)
 
 ## Examples
 
