@@ -32,7 +32,7 @@ describe "paypal", ->
             Host: "api.paypal.com"
             Accept: "application/json"
             Authorization: "Basic MTIzOnNoaA=="
-            "Content-length": 29
+            "Content-length": "29"
             "Content-Type": "application/x-www-form-urlencoded"
             "Accept-Language": "en_US"
           }

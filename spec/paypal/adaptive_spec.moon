@@ -22,7 +22,7 @@ describe "paypal", ->
             "X-PAYPAL-SECURITY-USERID": "me_1212121.leafo.net"
             "X-PAYPAL-SECURITY-SIGNATURE": "AABBBC_CCZZZXXX"
             "X-PAYPAL-SECURITY-PASSWORD": "123456789"
-            "Content-length": types.number
+            "Content-length": types.pattern "%d+"
             "X-PAYPAL-REQUEST-DATA-FORMAT": "NV"
           }
         }

@@ -43,7 +43,7 @@ describe "stripe", ->
           headers: types.shape {
             "Host": "api.stripe.com"
             "Content-Type": "application/x-www-form-urlencoded"
-            "Content-length": opts.body and types.number
+            "Content-length": opts.body and types.pattern "%d+"
             "Authorization": "Basic Y2xpZW50X3NlY3JldDo="
           }
         }

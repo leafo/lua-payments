@@ -23,7 +23,7 @@ describe "paypal", ->
           headers: types.shape {
             Host: "api-3t.sandbox.paypal.com"
             "Content-type": "application/x-www-form-urlencoded"
-            "Content-length": types.number
+            "Content-length": types.pattern "%d+"
           }
         }
 
