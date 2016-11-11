@@ -72,7 +72,6 @@ do
         ["Content-Type"] = "application/x-www-form-urlencoded",
         ["Content-length"] = body and tostring(#body) or nil
       }
-      require("moon").p(headers)
       local url = self.api_url .. path
       if method == "GET" and params then
         url = url .. "?" .. tostring(encode_query_string(params))

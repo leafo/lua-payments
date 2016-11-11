@@ -124,8 +124,6 @@ class Stripe extends require "payments.base_client"
       "Content-length": body and tostring(#body) or nil
     }
 
-    require("moon").p headers
-
     url = @api_url .. path
     if method == "GET" and params
       url ..= "?#{encode_query_string params}"
