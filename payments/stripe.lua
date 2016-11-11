@@ -93,17 +93,23 @@ do
         return res, status
       end
     end,
-    _iterate_resource = function(self, method, per_page)
+    _iterate_resource = function(self, method, per_page, opts)
       if per_page == nil then
         per_page = 50
       end
       local last_id
       return coroutine.wrap(function()
         while true do
-          local items = assert(method(self, {
+          local iteration_opts = {
             limit = per_page,
             starting_after = last_id
-          }))
+          }
+          if opts then
+            for k, v in pairs(opts) do
+              iteration_opts[k] = v
+            end
+          end
+          local items = assert(method(self, iteration_opts))
           local _list_0 = items.data
           for _index_0 = 1, #_list_0 do
             local a = _list_0[_index_0]
@@ -231,8 +237,8 @@ do
       self.__base[list_method] = self.__base[list_method] or function(self, opts)
         return self:_request("GET", api_path, opts)
       end
-      self.__base["each_" .. tostring(singular)] = self.__base["each_"] or function(self)
-        return self:_iterate_resource(self[list_method])
+      self.__base["each_" .. tostring(singular)] = self.__base["each_"] or function(self, opts)
+        return self:_iterate_resource(self[list_method], nil, opts)
       end
       self.__base["get_" .. tostring(singular)] = self.__base["get_"] or function(self, id, opts)
         return self:_request("GET", tostring(api_path) .. "/" .. tostring(id), opts)
