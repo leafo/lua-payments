@@ -22,8 +22,8 @@ class Stripe extends require "payments.base_client"
       @__base["each_#{singular}"] or= =>
         @_iterate_resource @[list_method]
 
-      @__base["get_#{singular}"] or= (id) =>
-        @_request "GET", "#{api_path}/#{id}"
+      @__base["get_#{singular}"] or= (id, opts) =>
+        @_request "GET", "#{api_path}/#{id}", opts
 
     unless resource_opts.edit == false
       @__base["update_#{singular}"] or= (id, opts) =>

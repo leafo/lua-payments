@@ -234,8 +234,8 @@ do
       self.__base["each_" .. tostring(singular)] = self.__base["each_"] or function(self)
         return self:_iterate_resource(self[list_method])
       end
-      self.__base["get_" .. tostring(singular)] = self.__base["get_"] or function(self, id)
-        return self:_request("GET", tostring(api_path) .. "/" .. tostring(id))
+      self.__base["get_" .. tostring(singular)] = self.__base["get_"] or function(self, id, opts)
+        return self:_request("GET", tostring(api_path) .. "/" .. tostring(id), opts)
       end
     end
     if not (resource_opts.edit == false) then
