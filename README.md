@@ -2,8 +2,8 @@
 
 [![Build Status](https://travis-ci.org/leafo/lua-payments.svg?branch=master)](https://travis-ci.org/leafo/lua-payments)
 
-Bindings to various payment provider APIs for use in Lua (with OpenResty or
-anything that supports LuaSocket)
+Bindings to various payment provider APIs for use in Lua (with OpenResty via
+Lapis or anything that supports LuaSocket or cqueues)
 
 The following APIs are supported:
 
@@ -182,4 +182,28 @@ client:delete_customer(customer.id)
 
 ```
 
+## HTTP Client
 
+All of the APIs exposed here are powered by HTTP. This client supports using
+different HTTP client libraries depending on the environment.
+
+If `ngx` is available in the global scope then Lapis' HTTP library is used by
+default.  This will give you non-blocking requests within nginx. Otherwise,
+LuaSec and LuaSocket are used.
+
+You can manually set the client by passing a `http_provider` parameter to any
+of the client constructors. For example, to use cqueues pass
+`"http.compat.socket"` as the provider:
+
+```lua
+local Stripe = require("payments.stripe").Stripe
+
+local client = Stripe({
+  http_provider = "http.compat.socket",
+  -- ...
+})
+```
+
+## License
+
+MIT, Copyright (C) 2016 by Leaf Corcoran
