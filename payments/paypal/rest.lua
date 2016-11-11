@@ -90,10 +90,11 @@ do
       local email = assert(opts.email, "missing email")
       local amount = assert(opts.amount, "missing amount")
       local currency = assert(opts.currency, "missing currency")
-      local note = opts.note or "A payout from itch.io"
+      local note = opts.note or "Payout"
+      local email_subject = opts.email_subject or "You got a payout"
       return self:_request("POST", "payments/payouts", {
         sender_batch_header = {
-          email_subject = "You got a payout from itch.io"
+          email_subject = email_subject
         },
         items = {
           {

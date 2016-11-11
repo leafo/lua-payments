@@ -112,11 +112,14 @@ class PayPalRest extends require "payments.base_client"
     email = assert opts.email, "missing email"
     amount = assert opts.amount, "missing amount"
     currency = assert opts.currency, "missing currency"
-    note = opts.note or "A payout from itch.io"
+
+    note = opts.note or "Payout"
+    email_subject = opts.email_subject or "You got a payout"
+
 
     @_request "POST", "payments/payouts", {
       sender_batch_header: {
-        email_subject: "You got a payout from itch.io"
+        :email_subject
       }
       items: {
         {
