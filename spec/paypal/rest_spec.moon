@@ -107,6 +107,15 @@ describe "paypal", ->
           paypal.last_token_time = os.time!
           paypal.access_token = paypal.last_token.access_token
 
+        it "sale_transaction", ->
+          paypal\sale_transaction "TRANSACTION_ID"
+
+          assert.same 1, #http_requests
+          assert_api_requrest http_requests[1], {
+            method: "GET"
+            url: "https://api.paypal.com/v1/payments/sale/TRANSACTION_ID"
+          }
+
         it "payout", ->
           paypal\payout {
             email: "leafo@example.com"
