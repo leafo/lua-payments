@@ -46,7 +46,7 @@ describe "paypal", ->
         assert (types.shape {
           method: opts.method
           sink: types.function
-          source: types.function\is_optional!
+          source: opts.body and types.function
           url: opts.url
           headers: types.shape {
             Host: "api.paypal.com"
@@ -57,6 +57,11 @@ describe "paypal", ->
             "Content-length": types.pattern("%d+")\is_optional!
           }
         }) req
+
+        if opts.body
+          source = req.source!
+          import from_json from require "lapis.util"
+          assert.same opts.body, from_json(source)
 
       it "makes request", ->
         paypal\get_payments!
@@ -113,5 +118,21 @@ describe "paypal", ->
           assert_api_requrest http_requests[1], {
             method: "POST"
             url: "https://api.paypal.com/v1/payments/payouts?sync_mode=true"
+            body: {
+              sender_batch_header: {
+                email_subject: "You got a payout"
+              }
+              items: {
+                {
+                  amount: {
+                    currency: "USD",
+                    value: "1.00"
+                  }
+                  receiver: "leafo@example.com",
+                  recipient_type: "EMAIL",
+                  note: "Payout"
+                }
+              }
+            }
           }
 
