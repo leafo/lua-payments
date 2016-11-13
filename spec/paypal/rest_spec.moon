@@ -46,6 +46,7 @@ describe "paypal", ->
         assert (types.shape {
           method: opts.method
           sink: types.function
+          source: types.function\is_optional!
           url: opts.url
           headers: types.shape {
             Host: "api.paypal.com"
@@ -53,8 +54,9 @@ describe "paypal", ->
             Authorization: "Bearer ACCESS_TOKEN"
             "Content-Type": "application/json"
             "Accept-Language": "en_US"
+            "Content-length": types.pattern("%d+")\is_optional!
           }
-        }) http_requests[2]
+        }) req
 
       it "makes request", ->
         paypal\get_payments!
@@ -89,3 +91,27 @@ describe "paypal", ->
         assert.same 4, #http_requests
         assert_oauth_token_request http_requests[1]
         assert_oauth_token_request http_requests[3]
+
+      describe "api calls", ->
+        -- stub oauth request
+        before_each ->
+          paypal.last_token = {
+            access_token: "ACCESS_TOKEN"
+            expires_in: 5000
+          }
+          paypal.last_token_time = os.time!
+          paypal.access_token = paypal.last_token.access_token
+
+        it "payout", ->
+          paypal\payout {
+            email: "leafo@example.com"
+            amount: paypal\format_price 100, "USD"
+            currency: "USD"
+          }
+
+          assert.same 1, #http_requests
+          assert_api_requrest http_requests[1], {
+            method: "POST"
+            url: "https://api.paypal.com/v1/payments/payouts?sync_mode=true"
+          }
+
