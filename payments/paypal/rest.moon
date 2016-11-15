@@ -92,7 +92,7 @@ class PayPalRest extends require "payments.base_client"
       "Accept-Language": "en_US"
     }
 
-    res, status = @http!.request {
+    res, status = assert @http!.request {
       :url
       :method
       :headers
@@ -101,6 +101,11 @@ class PayPalRest extends require "payments.base_client"
       source: body and ltn12.source.string(body) or nil
 
       protocol: @http_provider == "ssl.https" and "sslv23" or nil
+    }
+
+    require("moon").p {
+      headers
+      concat out
     }
 
     json.decode(concat out), status
