@@ -81,10 +81,6 @@ do
         source = body and ltn12.source.string(body) or nil,
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       }))
-      require("moon").p({
-        headers,
-        concat(out)
-      })
       return json.decode(concat(out)), status
     end,
     get_payments = function(self, opts)

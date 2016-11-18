@@ -103,11 +103,6 @@ class PayPalRest extends require "payments.base_client"
       protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 
-    require("moon").p {
-      headers
-      concat out
-    }
-
     json.decode(concat out), status
 
   get_payments: (opts) =>
