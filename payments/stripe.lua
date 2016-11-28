@@ -290,6 +290,9 @@ do
     edit = false,
     path = "balance/history"
   })
+  resource("application_fees", {
+    edit = false
+  })
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
   end
