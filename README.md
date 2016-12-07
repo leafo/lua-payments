@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/leafo/lua-payments.svg?branch=master)](https://travis-ci.org/leafo/lua-payments)
 
 Bindings to various payment provider APIs for use in Lua (with OpenResty via
-Lapis or anything that supports LuaSocket or cqueues)
+Lapis or anything that supports LuaSocket or [cqueues](http://www.25thandclement.com/~william/projects/cqueues.html) with [lua-http](https://github.com/daurnimator/lua-http))
 
 The following APIs are supported:
 
