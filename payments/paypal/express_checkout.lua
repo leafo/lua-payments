@@ -120,9 +120,9 @@ do
       local out = { }
       local parse_url = require("socket.url").parse
       local success, code, headers = self:http().request({
-        url = self.api_url,
+        url = self.checkout_url_prefix,
         headers = {
-          ["Host"] = assert(parse_url(self.api_url).host, "failed to get host"),
+          ["Host"] = assert(parse_url(self.checkout_url_prefix).host, "failed to get host"),
           ["Content-type"] = "application/x-www-form-urlencoded",
           ["Content-length"] = tostring(#body)
         },
