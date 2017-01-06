@@ -33,7 +33,7 @@ class Stripe extends require "payments.base_client"
         @_request "POST", "#{api_path}/#{id}", opts
 
       @__base["delete_#{singular}"] or= (id) =>
-        @_request "DELETE", "#{api_path}/#{id}", opts
+        @_request "DELETE", "#{api_path}/#{id}"
 
       @__base["create_#{singular}"] or= (opts) =>
         if resource_opts.create

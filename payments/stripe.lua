@@ -250,7 +250,7 @@ do
         return self:_request("POST", tostring(api_path) .. "/" .. tostring(id), opts)
       end
       self.__base["delete_" .. tostring(singular)] = self.__base["delete_"] or function(self, id)
-        return self:_request("DELETE", tostring(api_path) .. "/" .. tostring(id), opts)
+        return self:_request("DELETE", tostring(api_path) .. "/" .. tostring(id))
       end
       self.__base["create_" .. tostring(singular)] = self.__base["create_"] or function(self, opts)
         if resource_opts.create then
