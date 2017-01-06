@@ -140,3 +140,29 @@ class PayPalExpressCheckout extends require "payments.base_client"
 
   format_price: (...) => format_price ...
 
+  verify_ipn: (original_body) =>
+    body = "cmd=_notify-validate&" .. original_body
+
+    out = {}
+
+    parse_url = require("socket.url").parse
+
+    success, code, headers = @http!.request {
+      url: @api_url
+
+      headers: {
+        "Host": assert parse_url(@api_url).host, "failed to get host"
+        "Content-type": "application/x-www-form-urlencoded"
+        "Content-length": tostring #body
+      }
+
+      source: ltn12.source.string body
+      method: "POST"
+      sink: ltn12.sink.table out
+      protocol: @http_provider == "ssl.https" and "sslv23" or nil
+    }
+
+    out = table.concat out
+    "VERIFIED" == out, code, out, headers
+
+

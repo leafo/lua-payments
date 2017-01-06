@@ -114,6 +114,25 @@ do
     end,
     format_price = function(self, ...)
       return format_price(...)
+    end,
+    verify_ipn = function(self, original_body)
+      local body = "cmd=_notify-validate&" .. original_body
+      local out = { }
+      local parse_url = require("socket.url").parse
+      local success, code, headers = self:http().request({
+        url = self.api_url,
+        headers = {
+          ["Host"] = assert(parse_url(self.api_url).host, "failed to get host"),
+          ["Content-type"] = "application/x-www-form-urlencoded",
+          ["Content-length"] = tostring(#body)
+        },
+        source = ltn12.source.string(body),
+        method = "POST",
+        sink = ltn12.sink.table(out),
+        protocol = self.http_provider == "ssl.https" and "sslv23" or nil
+      })
+      out = table.concat(out)
+      return "VERIFIED" == out, code, out, headers
     end
   }
   _base_0.__index = _base_0
