@@ -134,9 +134,11 @@ class PayPalAdaptive extends require "payments.base_client"
       "requestEnvelope.errorLanguage": "en_US"
     }, params
 
-  payment_details: (pay_key, params) =>
+  payment_details: (params) =>
+    assert params.payKey or params.transactionId, params.trackingId,
+      "Missing one of payKey, transactionId or trackingId"
+
     @_method "AdaptivePayments/PaymentDetails", extend {
-      payKey: pay_key
       "requestEnvelope.errorLanguage": "en_US"
     }, params
 

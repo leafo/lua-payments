@@ -124,9 +124,9 @@ do
         ["requestEnvelope.errorLanguage"] = "en_US"
       }, params))
     end,
-    payment_details = function(self, pay_key, params)
+    payment_details = function(self, params)
+      assert(params.payKey or params.transactionId, params.trackingId, "Missing one of payKey, transactionId or trackingId")
       return self:_method("AdaptivePayments/PaymentDetails", extend({
-        payKey = pay_key,
         ["requestEnvelope.errorLanguage"] = "en_US"
       }, params))
     end,

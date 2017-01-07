@@ -116,6 +116,18 @@ describe "paypal", ->
           payKey: "my-key-1000"
         }
 
+      it "gets payment details", ->
+        paypal\payment_details payKey: "hello-world"
+
+        assert_request http_requests[1], {
+          method: "POST"
+          url: "https://svcs.sandbox.paypal.com/AdaptivePayments/PaymentDetails"
+        }, types.shape {
+          "requestEnvelope.errorLanguage": "en_US"
+          "clientDetails.applicationId": "APP-1234HELLOWORLD"
+          payKey: "hello-world"
+        }
+
       it "makes sets payment options", ->
         paypal\set_payment_options "my-key-1001", {
           "displayOptions.businessName": "some title"
