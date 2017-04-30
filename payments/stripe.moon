@@ -88,7 +88,7 @@ class Stripe extends require "payments.base_client"
 
     connect_url = "https://connect.stripe.com/oauth/token"
 
-    assert @http!.request {
+    _, status = assert @http!.request {
       url: connect_url
       method: "POST"
       sink: ltn12.sink.table out
@@ -103,6 +103,10 @@ class Stripe extends require "payments.base_client"
     }
 
     out = table.concat out
+
+    unless status == 200
+      return nil, "got status #{status}: #{out}"
+
     json.decode out
 
   _request: (method, path, params, access_token=@client_secret) =>

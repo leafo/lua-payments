@@ -36,7 +36,7 @@ do
         grant_type = "authorization_code"
       })
       local connect_url = "https://connect.stripe.com/oauth/token"
-      assert(self:http().request({
+      local _, status = assert(self:http().request({
         url = connect_url,
         method = "POST",
         sink = ltn12.sink.table(out),
@@ -49,6 +49,9 @@ do
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       }))
       out = table.concat(out)
+      if not (status == 200) then
+        return nil, "got status " .. tostring(status) .. ": " .. tostring(out)
+      end
       return json.decode(out)
     end,
     _request = function(self, method, path, params, access_token)
