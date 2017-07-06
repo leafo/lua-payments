@@ -49,12 +49,17 @@ class Stripe extends require "payments.base_client"
     super opts
 
   for_account_id: (account_id) =>
-    Stripe {
+    out = Stripe {
       client_id: @client_id
       client_secret: @client_secret
       publishable_key: @publishable_key
       stripe_account_id: account_id
+      http_provider: @http_provider
     }
+
+    out.http = @http
+
+    out
 
   calculate_fee: (currency, transactions_count, amount, medium) =>
     switch medium

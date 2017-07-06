@@ -15,12 +15,15 @@ do
   local _base_0 = {
     api_url = "https://api.stripe.com/v1/",
     for_account_id = function(self, account_id)
-      return Stripe({
+      local out = Stripe({
         client_id = self.client_id,
         client_secret = self.client_secret,
         publishable_key = self.publishable_key,
-        stripe_account_id = account_id
+        stripe_account_id = account_id,
+        http_provider = self.http_provider
       })
+      out.http = self.http
+      return out
     end,
     calculate_fee = function(self, currency, transactions_count, amount, medium)
       local _exp_0 = medium
