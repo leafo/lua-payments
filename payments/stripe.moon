@@ -45,7 +45,16 @@ class Stripe extends require "payments.base_client"
     @client_id = assert opts.client_id, "missing client id"
     @client_secret = assert opts.client_secret, "missing client secret"
     @publishable_key = opts.publishable_key
+    @stripe_account_id = opts.stripe_account_id
     super opts
+
+  for_account_id: (account_id) =>
+    Stripe {
+      client_id: @client_id
+      client_secret: @client_secret
+      publishable_key: @publishable_key
+      stripe_account_id: account_id
+    }
 
   calculate_fee: (currency, transactions_count, amount, medium) =>
     switch medium
@@ -109,7 +118,7 @@ class Stripe extends require "payments.base_client"
 
     json.decode out
 
-  _request: (method, path, params, access_token=@client_secret) =>
+  _request: (method, path, params, access_token=@client_secret, more_headers) =>
     out = {}
 
     if params
@@ -126,7 +135,12 @@ class Stripe extends require "payments.base_client"
       "Authorization": "Basic " .. encode_base64 access_token .. ":"
       "Content-Type": "application/x-www-form-urlencoded"
       "Content-length": body and tostring(#body) or nil
+      "Stripe-Account": @stripe_account_id
     }
+
+    if more_headers
+      for k,v in pairs more_headers
+        headers[k] = v
 
     url = @api_url .. path
     if method == "GET" and params

@@ -14,6 +14,14 @@ do
   local _parent_0 = require("payments.base_client")
   local _base_0 = {
     api_url = "https://api.stripe.com/v1/",
+    for_account_id = function(self, account_id)
+      return Stripe({
+        client_id = self.client_id,
+        client_secret = self.client_secret,
+        publishable_key = self.publishable_key,
+        stripe_account_id = account_id
+      })
+    end,
     calculate_fee = function(self, currency, transactions_count, amount, medium)
       local _exp_0 = medium
       if "default" == _exp_0 then
@@ -54,7 +62,7 @@ do
       end
       return json.decode(out)
     end,
-    _request = function(self, method, path, params, access_token)
+    _request = function(self, method, path, params, access_token, more_headers)
       if access_token == nil then
         access_token = self.client_secret
       end
@@ -73,8 +81,14 @@ do
         ["Host"] = assert(parse_url(self.api_url).host, "failed to get host"),
         ["Authorization"] = "Basic " .. encode_base64(access_token .. ":"),
         ["Content-Type"] = "application/x-www-form-urlencoded",
-        ["Content-length"] = body and tostring(#body) or nil
+        ["Content-length"] = body and tostring(#body) or nil,
+        ["Stripe-Account"] = self.stripe_account_id
       }
+      if more_headers then
+        for k, v in pairs(more_headers) do
+          headers[k] = v
+        end
+      end
       local url = self.api_url .. path
       if method == "GET" and params then
         url = url .. "?" .. tostring(encode_query_string(params))
@@ -202,6 +216,7 @@ do
       self.client_id = assert(opts.client_id, "missing client id")
       self.client_secret = assert(opts.client_secret, "missing client secret")
       self.publishable_key = opts.publishable_key
+      self.stripe_account_id = opts.stripe_account_id
       return _class_0.__parent.__init(self, opts)
     end,
     __base = _base_0,
