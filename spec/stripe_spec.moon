@@ -33,6 +33,17 @@ describe "stripe", ->
 
         req = assert http_requests[#http_requests], "expected http request"
 
+        headers = {
+          "Host": "api.stripe.com"
+          "Content-Type": "application/x-www-form-urlencoded"
+          "Content-length": opts.body and types.pattern "%d+"
+          "Authorization": "Basic Y2xpZW50X3NlY3JldDo="
+        }
+
+        if opts.headers
+          for k,v in pairs opts.headers
+            headers[k] = v
+
         assert_shape req, types.shape {
           :method
           url: "https://api.stripe.com/v1#{assert opts.path, "missing path"}"
@@ -40,12 +51,7 @@ describe "stripe", ->
           sink: types.function
           source: opts.body and types.function
 
-          headers: types.shape {
-            "Host": "api.stripe.com"
-            "Content-Type": "application/x-www-form-urlencoded"
-            "Content-length": opts.body and types.pattern "%d+"
-            "Authorization": "Basic Y2xpZW50X3NlY3JldDo="
-          }
+          headers: types.shape headers
         }
 
         if opts.body
@@ -65,6 +71,15 @@ describe "stripe", ->
         client_secret: "client_secret"
       }
       stripe.http = http_fn
+
+    describe "with account", ->
+      api_request {
+        path: "/charges/hello_world"
+        headers: {
+          "Stripe-Account": "acct_one"
+        }
+      }, ->
+        stripe\for_account_id("acct_one")\get_charge "hello_world"
 
     describe "disputes", ->
       api_request {
