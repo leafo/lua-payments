@@ -90,6 +90,7 @@ do
       local email = assert(opts.email, "missing email")
       local amount = assert(opts.amount, "missing amount")
       local currency = assert(opts.currency, "missing currency")
+      assert(type(amount) == "string", "amount should be formatted as string (0.00)")
       local note = opts.note or "Payout"
       local email_subject = opts.email_subject or "You got a payout"
       return self:_request("POST", "payments/payouts", {

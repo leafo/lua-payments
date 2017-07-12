@@ -113,6 +113,8 @@ class PayPalRest extends require "payments.base_client"
     amount = assert opts.amount, "missing amount"
     currency = assert opts.currency, "missing currency"
 
+    assert type(amount) == "string", "amount should be formatted as string (0.00)"
+
     note = opts.note or "Payout"
     email_subject = opts.email_subject or "You got a payout"
 
