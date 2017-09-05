@@ -135,7 +135,7 @@ class PayPalAdaptive extends require "payments.base_client"
     }, params
 
   payment_details: (params) =>
-    assert params.payKey or params.transactionId, params.trackingId,
+    assert params.payKey or params.transactionId or params.trackingId,
       "Missing one of payKey, transactionId or trackingId"
 
     @_method "AdaptivePayments/PaymentDetails", extend {
