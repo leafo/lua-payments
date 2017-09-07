@@ -114,6 +114,9 @@ do
     end,
     sale_transaction = function(self, transaction_id)
       return self:_request("GET", "payments/sale/" .. tostring(transaction_id))
+    end,
+    payment = function(self, payment_id)
+      return self:_request("GET", "payments/payment/" .. tostring(payment_id))
     end
   }
   _base_0.__index = _base_0

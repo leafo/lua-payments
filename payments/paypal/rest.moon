@@ -142,3 +142,7 @@ class PayPalRest extends require "payments.base_client"
     -- GET /v1/payments/sale/<Transaction-Id>
     @_request "GET", "payments/sale/#{transaction_id}"
 
+  payment: (payment_id) =>
+    -- GET /v1/payments/payment/<Payment-Id>
+    @_request "GET", "payments/payment/#{payment_id}"
+
