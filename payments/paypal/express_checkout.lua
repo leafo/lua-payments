@@ -76,7 +76,8 @@ do
             other_messages[k] = val
           else
             id = tonumber(id) + 1
-            out[id] = out[id] or { }
+            local _update_0 = id
+            out[_update_0] = out[_update_0] or { }
             out[id][field] = val
           end
         else

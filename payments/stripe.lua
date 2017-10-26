@@ -253,27 +253,33 @@ do
     local api_path = resource_opts.path or name
     local list_method = "list_" .. tostring(name)
     if not (resource_opts.get == false) then
-      self.__base[list_method] = self.__base[list_method] or function(self, opts)
+      local _update_0 = list_method
+      self.__base[_update_0] = self.__base[_update_0] or function(self, opts)
         return self:_request("GET", api_path, opts)
       end
-      self.__base["each_" .. tostring(singular)] = self.__base["each_"] or function(self, opts)
+      local _update_1 = "each_" .. tostring(singular)
+      self.__base[_update_1] = self.__base[_update_1] or function(self, opts)
         return self:_iterate_resource(self[list_method], opts)
       end
-      self.__base["get_" .. tostring(singular)] = self.__base["get_"] or function(self, id, opts)
+      local _update_2 = "get_" .. tostring(singular)
+      self.__base[_update_2] = self.__base[_update_2] or function(self, id, opts)
         return self:_request("GET", tostring(api_path) .. "/" .. tostring(id), opts)
       end
     end
     if not (resource_opts.edit == false) then
-      self.__base["update_" .. tostring(singular)] = self.__base["update_"] or function(self, id, opts)
+      local _update_0 = "update_" .. tostring(singular)
+      self.__base[_update_0] = self.__base[_update_0] or function(self, id, opts)
         if resource_opts.update then
           opts = resource_opts.update(self, opts)
         end
         return self:_request("POST", tostring(api_path) .. "/" .. tostring(id), opts)
       end
-      self.__base["delete_" .. tostring(singular)] = self.__base["delete_"] or function(self, id)
+      local _update_1 = "delete_" .. tostring(singular)
+      self.__base[_update_1] = self.__base[_update_1] or function(self, id)
         return self:_request("DELETE", tostring(api_path) .. "/" .. tostring(id))
       end
-      self.__base["create_" .. tostring(singular)] = self.__base["create_"] or function(self, opts)
+      local _update_2 = "create_" .. tostring(singular)
+      self.__base[_update_2] = self.__base[_update_2] or function(self, opts)
         if resource_opts.create then
           opts = resource_opts.create(self, opts)
         end
