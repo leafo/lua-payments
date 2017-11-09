@@ -112,6 +112,9 @@ do
         sync_mode = "true"
       })
     end,
+    get_payout = function(self, batch_id)
+      return self:_request("GET", "payments/payouts/" .. tostring(batch_id))
+    end,
     sale_transaction = function(self, transaction_id)
       return self:_request("GET", "payments/sale/" .. tostring(transaction_id))
     end,

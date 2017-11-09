@@ -138,6 +138,10 @@ class PayPalRest extends require "payments.base_client"
       sync_mode: "true"
     }
 
+  get_payout: (batch_id) =>
+    -- GET /v1/payments/payouts/<payout_batch_id>
+    @_request "GET", "payments/payouts/#{batch_id}"
+
   sale_transaction: (transaction_id) =>
     -- GET /v1/payments/sale/<Transaction-Id>
     @_request "GET", "payments/sale/#{transaction_id}"
