@@ -14,6 +14,61 @@ do
     format_price = function(self, ...)
       return format_price(...)
     end,
+    log_in_url = function(self, opts)
+      if opts == nil then
+        opts = { }
+      end
+      local url
+      if self.sandbox then
+        url = self.__class.urls.login_sandbox
+      else
+        url = self.__class.urls.login_default
+      end
+      local params = encode_query_string({
+        client_id = assert(self.client_id, "missing client id"),
+        response_type = opts.response_type or "code",
+        scope = opts.scope or "openid",
+        redirect_uri = assert(opts.redirect_uri, "missing redirect uri"),
+        nonce = opts.nonce,
+        state = opts.state
+      })
+      return tostring(url) .. "?" .. tostring(params)
+    end,
+    identity_token = function(self, code)
+      if not (self:need_refresh()) then
+        return 
+      end
+      local parse_url = require("socket.url").parse
+      local host = assert(parse_url(self.url).host)
+      local body = encode_query_string({
+        grant_type = "authorization_code",
+        code = code
+      })
+      local encode_base64
+      encode_base64 = require("lapis.util.encoding").encode_base64
+      local headers = {
+        ["Host"] = host,
+        ["Content-length"] = tostring(#body),
+        ["Authorization"] = "Basic " .. tostring(encode_base64(tostring(self.client_id) .. ":" .. tostring(self.secret))),
+        ["Content-Type"] = "application/x-www-form-urlencoded",
+        ["Accept"] = "application/json",
+        ["Accept-Language"] = "en_US"
+      }
+      local out = { }
+      local res, status = assert(self:http().request({
+        url = tostring(self.url) .. "identity/openidconnect/tokenservice",
+        method = method,
+        headers = headers,
+        sink = ltn12.sink.table(out),
+        source = body and ltn12.source.string(body) or nil,
+        protocol = self.http_provider == "ssl.https" and "sslv23" or nil
+      }))
+      return {
+        res = res,
+        status = status,
+        table.concat(out, "")
+      }
+    end,
     need_refresh = function(self)
       if not (self.last_token) then
         return true
@@ -126,7 +181,8 @@ do
   setmetatable(_base_0, _parent_0.__base)
   _class_0 = setmetatable({
     __init = function(self, opts)
-      self.url = opts.sandbox and self.__class.urls.sandbox or self.__class.urls.default
+      self.sandbox = opts.sandbox or false
+      self.url = self.sandbox and self.__class.urls.sandbox or self.__class.urls.default
       self.client_id = assert(opts.client_id, "missing client id")
       self.secret = assert(opts.secret, "missing secret")
       return _class_0.__parent.__init(self, opts)
@@ -156,7 +212,9 @@ do
   local self = _class_0
   self.urls = {
     default = "https://api.paypal.com/v1/",
-    sandbox = "https://api.sandbox.paypal.com/v1/"
+    sandbox = "https://api.sandbox.paypal.com/v1/",
+    login_default = "https://www.paypal.com/signin/authorize",
+    login_sandbox = "https://www.sandbox.paypal.com/signin/authorize"
   }
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)

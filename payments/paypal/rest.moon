@@ -15,15 +15,77 @@ class PayPalRest extends require "payments.base_client"
   @urls: {
     default: "https://api.paypal.com/v1/"
     sandbox: "https://api.sandbox.paypal.com/v1/"
+
+    login_default: "https://www.paypal.com/signin/authorize"
+    login_sandbox: "https://www.sandbox.paypal.com/signin/authorize"
   }
 
   new: (opts) =>
-    @url = opts.sandbox and @@urls.sandbox or @@urls.default
+    @sandbox = opts.sandbox or false
+    @url = @sandbox and @@urls.sandbox or @@urls.default
     @client_id = assert opts.client_id, "missing client id"
     @secret = assert opts.secret, "missing secret"
     super opts
 
   format_price: (...) => format_price ...
+
+  log_in_url: (opts={}) =>
+    url = if @sandbox
+      @@urls.login_sandbox
+    else
+      @@urls.login_default
+
+    params = encode_query_string {
+      client_id: assert @client_id, "missing client id"
+      response_type: opts.response_type or "code"
+      scope: opts.scope or "openid"
+      redirect_uri: assert opts.redirect_uri, "missing redirect uri"
+      nonce: opts.nonce
+      state: opts.state
+    }
+
+    "#{url}?#{params}"
+
+  identity_token: (code) =>
+    return unless @need_refresh!
+
+    parse_url = require("socket.url").parse
+    host = assert parse_url(@url).host
+
+    body = encode_query_string {
+      grant_type: "authorization_code"
+      :code
+    }
+
+    import encode_base64 from require "lapis.util.encoding"
+
+    headers = {
+      "Host": host
+      "Content-length":tostring(#body)
+      "Authorization": "Basic #{encode_base64 "#{@client_id}:#{@secret}"}"
+      "Content-Type": "application/x-www-form-urlencoded"
+      "Accept": "application/json"
+      "Accept-Language": "en_US"
+    }
+
+    out = {}
+
+    res, status = assert @http!.request {
+      url: "#{@url}identity/openidconnect/tokenservice"
+      :method
+      :headers
+
+      sink: ltn12.sink.table out
+      source: body and ltn12.source.string(body) or nil
+
+      protocol: @http_provider == "ssl.https" and "sslv23" or nil
+    }
+
+    {
+      :res
+      :status
+      table.concat out, ""
+    }
 
   need_refresh: =>
     return true unless @last_token
