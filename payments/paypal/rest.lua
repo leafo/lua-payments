@@ -77,9 +77,18 @@ do
         opts = { }
       end
       assert(opts.access_token, "missing access token")
-      local url = "oauth2/token/userinfo?" .. tostring(encode_query_string({
-        schema = "openid"
-      }))
+      local res, status = self:_request({
+        method = "GET",
+        path = "oauth2/token/userinfo",
+        url_params = {
+          schema = "openid"
+        },
+        access_token = opts.access_token
+      })
+      if not (status == 200) then
+        return nil, res
+      end
+      return res
     end,
     need_refresh = function(self)
       if not (self.last_token) then
@@ -128,7 +137,13 @@ do
       assert(opts.path, "missing path")
       local method, path, params, url_params
       method, path, params, url_params = opts.method, opts.path, opts.params, opts.url_params
-      self:refresh_token()
+      local authorization
+      if opts.access_token then
+        authorization = "Bearer " .. tostring(opts.access_token)
+      else
+        self:refresh_token()
+        authorization = "Bearer " .. tostring(self.access_token)
+      end
       local out = { }
       local body
       if params then
@@ -140,18 +155,17 @@ do
       end
       local parse_url = require("socket.url").parse
       local host = assert(parse_url(self.url).host)
-      local headers = {
-        ["Host"] = host,
-        ["Content-length"] = body and tostring(#body) or nil,
-        ["Authorization"] = "Bearer " .. tostring(self.access_token),
-        ["Content-Type"] = "application/json",
-        ["Accept"] = "application/json",
-        ["Accept-Language"] = "en_US"
-      }
       local res, status = assert(self:http().request({
         url = url,
         method = method,
-        headers = headers,
+        headers = {
+          ["Host"] = host,
+          ["Content-length"] = body and tostring(#body) or nil,
+          ["Authorization"] = authorization,
+          ["Content-Type"] = body and "application/json",
+          ["Accept"] = "application/json",
+          ["Accept-Language"] = "en_US"
+        },
         sink = ltn12.sink.table(out),
         source = body and ltn12.source.string(body) or nil,
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil

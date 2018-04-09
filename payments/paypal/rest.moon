@@ -91,6 +91,23 @@ class PayPalRest extends require "payments.base_client"
 
     out
 
+  identity_userinfo: (opts={}) =>
+    assert opts.access_token, "missing access token"
+
+    res, status = @_request {
+      method: "GET"
+      path: "oauth2/token/userinfo"
+      url_params: {
+        schema: "openid"
+      }
+      access_token: opts.access_token
+    }
+
+    unless status == 200
+      return nil, res
+
+    res
+
   need_refresh: =>
     return true unless @last_token
     -- give it a 100 second buffer since who the h*ck knows what time paypal
@@ -139,7 +156,11 @@ class PayPalRest extends require "payments.base_client"
 
     {:method, :path, :params, :url_params} = opts
 
-    @refresh_token!
+    authorization = if opts.access_token
+      "Bearer #{opts.access_token}"
+    else
+      @refresh_token!
+      "Bearer #{@access_token}"
 
     out = {}
 
@@ -153,19 +174,18 @@ class PayPalRest extends require "payments.base_client"
     parse_url = require("socket.url").parse
     host = assert parse_url(@url).host
 
-    headers = {
-      "Host": host
-      "Content-length": body and tostring(#body) or nil
-      "Authorization": "Bearer #{@access_token}"
-      "Content-Type": "application/json"
-      "Accept": "application/json"
-      "Accept-Language": "en_US"
-    }
-
     res, status = assert @http!.request {
       :url
       :method
-      :headers
+
+      headers: {
+        "Host": host
+        "Content-length": body and tostring(#body) or nil
+        "Authorization": authorization
+        "Content-Type": body and "application/json"
+        "Accept": "application/json"
+        "Accept-Language": "en_US"
+      }
 
       sink: ltn12.sink.table out
       source: body and ltn12.source.string(body) or nil
