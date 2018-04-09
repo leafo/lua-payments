@@ -63,11 +63,14 @@ do
         source = body and ltn12.source.string(body) or nil,
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       }))
-      return {
-        res = res,
-        status = status,
-        table.concat(out, "")
-      }
+      out = table.concat(out, "")
+      if out:match("^{") then
+        out = json.decode(out)
+      end
+      if not (status == 200) then
+        return nil, out
+      end
+      return out
     end,
     need_refresh = function(self)
       if not (self.last_token) then

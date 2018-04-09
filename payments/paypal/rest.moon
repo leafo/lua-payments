@@ -81,11 +81,15 @@ class PayPalRest extends require "payments.base_client"
       protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 
-    {
-      :res
-      :status
-      table.concat out, ""
-    }
+    out = table.concat out, ""
+
+    if out\match "^{"
+      out = json.decode out
+
+    unless status == 200
+      return nil, out
+
+    out
 
   need_refresh: =>
     return true unless @last_token
