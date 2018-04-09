@@ -133,18 +133,22 @@ class PayPalRest extends require "payments.base_client"
 
     true
 
-  _request: (method, path, body, url_params) =>
+  _request: (opts={}) =>
+    assert opts.method, "missing method"
+    assert opts.path, "missing path"
+
+    {:method, :path, :params, :url_params} = opts
+
     @refresh_token!
 
     out = {}
 
-    body = if body then json.encode body
+    body = if params then json.encode params
 
     url = "#{@url}#{path}"
 
     if url_params
       url ..= "?" .. encode_query_string url_params
-
 
     parse_url = require("socket.url").parse
     host = assert parse_url(@url).host
@@ -172,7 +176,11 @@ class PayPalRest extends require "payments.base_client"
     json.decode(concat out), status
 
   get_payments: (opts) =>
-    @_request "GET", "payments/payment", opts
+    @_request {
+      method: "GET"
+      path: "payments/payment"
+      params: opts
+    }
 
   payout: (opts) =>
     email = assert opts.email, "missing email"
@@ -185,34 +193,48 @@ class PayPalRest extends require "payments.base_client"
     email_subject = opts.email_subject or "You got a payout"
 
 
-    @_request "POST", "payments/payouts", {
-      sender_batch_header: {
-        :email_subject
+    @_request {
+      method: "POST"
+      path: "payments/payouts"
+      url_params: {
+        sync_mode: "true"
       }
-      items: {
-        {
-          recipient_type: "EMAIL"
-          amount: {
-            value: amount
-            :currency
+      params: {
+        sender_batch_header: {
+          :email_subject
+        }
+        items: {
+          {
+            recipient_type: "EMAIL"
+            amount: {
+              value: amount
+              :currency
+            }
+            receiver: email
+            :note
           }
-          receiver: email
-          :note
         }
       }
-    }, {
-      sync_mode: "true"
     }
 
   get_payout: (batch_id) =>
     -- GET /v1/payments/payouts/<payout_batch_id>
-    @_request "GET", "payments/payouts/#{batch_id}"
+    @_request {
+      method: "GET"
+      path: "payments/payouts/#{batch_id}"
+    }
 
   sale_transaction: (transaction_id) =>
     -- GET /v1/payments/sale/<Transaction-Id>
-    @_request "GET", "payments/sale/#{transaction_id}"
+    @_request {
+      method: "GET"
+      path: "payments/sale/#{transaction_id}"
+    }
 
   payment: (payment_id) =>
     -- GET /v1/payments/payment/<Payment-Id>
-    @_request "GET", "payments/payment/#{payment_id}"
+    @_request {
+      method: "GET"
+      path: "payments/payment/#{payment_id}"
+    }
 

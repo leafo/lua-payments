@@ -72,6 +72,15 @@ do
       end
       return out
     end,
+    identity_userinfo = function(self, opts)
+      if opts == nil then
+        opts = { }
+      end
+      assert(opts.access_token, "missing access token")
+      local url = "oauth2/token/userinfo?" .. tostring(encode_query_string({
+        schema = "openid"
+      }))
+    end,
     need_refresh = function(self)
       if not (self.last_token) then
         return true
@@ -111,11 +120,19 @@ do
       assert(self.access_token, "failed to get token from refresh")
       return true
     end,
-    _request = function(self, method, path, body, url_params)
+    _request = function(self, opts)
+      if opts == nil then
+        opts = { }
+      end
+      assert(opts.method, "missing method")
+      assert(opts.path, "missing path")
+      local method, path, params, url_params
+      method, path, params, url_params = opts.method, opts.path, opts.params, opts.url_params
       self:refresh_token()
       local out = { }
-      if body then
-        body = json.encode(body)
+      local body
+      if params then
+        body = json.encode(params)
       end
       local url = tostring(self.url) .. tostring(path)
       if url_params then
@@ -142,7 +159,11 @@ do
       return json.decode(concat(out)), status
     end,
     get_payments = function(self, opts)
-      return self:_request("GET", "payments/payment", opts)
+      return self:_request({
+        method = "GET",
+        path = "payments/payment",
+        params = opts
+      })
     end,
     payout = function(self, opts)
       local email = assert(opts.email, "missing email")
@@ -151,33 +172,47 @@ do
       assert(type(amount) == "string", "amount should be formatted as string (0.00)")
       local note = opts.note or "Payout"
       local email_subject = opts.email_subject or "You got a payout"
-      return self:_request("POST", "payments/payouts", {
-        sender_batch_header = {
-          email_subject = email_subject
+      return self:_request({
+        method = "POST",
+        path = "payments/payouts",
+        url_params = {
+          sync_mode = "true"
         },
-        items = {
-          {
-            recipient_type = "EMAIL",
-            amount = {
-              value = amount,
-              currency = currency
-            },
-            receiver = email,
-            note = note
+        params = {
+          sender_batch_header = {
+            email_subject = email_subject
+          },
+          items = {
+            {
+              recipient_type = "EMAIL",
+              amount = {
+                value = amount,
+                currency = currency
+              },
+              receiver = email,
+              note = note
+            }
           }
         }
-      }, {
-        sync_mode = "true"
       })
     end,
     get_payout = function(self, batch_id)
-      return self:_request("GET", "payments/payouts/" .. tostring(batch_id))
+      return self:_request({
+        method = "GET",
+        path = "payments/payouts/" .. tostring(batch_id)
+      })
     end,
     sale_transaction = function(self, transaction_id)
-      return self:_request("GET", "payments/sale/" .. tostring(transaction_id))
+      return self:_request({
+        method = "GET",
+        path = "payments/sale/" .. tostring(transaction_id)
+      })
     end,
     payment = function(self, payment_id)
-      return self:_request("GET", "payments/payment/" .. tostring(payment_id))
+      return self:_request({
+        method = "GET",
+        path = "payments/payment/" .. tostring(payment_id)
+      })
     end
   }
   _base_0.__index = _base_0
