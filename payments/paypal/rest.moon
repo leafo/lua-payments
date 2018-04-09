@@ -46,16 +46,24 @@ class PayPalRest extends require "payments.base_client"
 
     "#{url}?#{params}"
 
-  identity_token: (code) =>
+  identity_token: (opts={}) =>
     return unless @need_refresh!
 
     parse_url = require("socket.url").parse
     host = assert parse_url(@url).host
 
-    body = encode_query_string {
-      grant_type: "authorization_code"
-      :code
-    }
+    body = if opts.refresh_token
+      encode_query_string {
+        grant_type: "refresh_token"
+        refresh_token: opts.refresh_token
+      }
+    elseif opts.code
+      encode_query_string {
+        grant_type: "authorization_code"
+        code: opts.code
+      }
+    else
+      error "unknown method for identity token (expecting code or refresh_token)"
 
     import encode_base64 from require "lapis.util.encoding"
 
@@ -71,8 +79,8 @@ class PayPalRest extends require "payments.base_client"
     out = {}
 
     res, status = assert @http!.request {
+      method: "POST"
       url: "#{@url}identity/openidconnect/tokenservice"
-      :method
       :headers
 
       sink: ltn12.sink.table out

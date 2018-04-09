@@ -34,16 +34,29 @@ do
       })
       return tostring(url) .. "?" .. tostring(params)
     end,
-    identity_token = function(self, code)
+    identity_token = function(self, opts)
+      if opts == nil then
+        opts = { }
+      end
       if not (self:need_refresh()) then
         return 
       end
       local parse_url = require("socket.url").parse
       local host = assert(parse_url(self.url).host)
-      local body = encode_query_string({
-        grant_type = "authorization_code",
-        code = code
-      })
+      local body
+      if opts.refresh_token then
+        body = encode_query_string({
+          grant_type = "refresh_token",
+          refresh_token = opts.refresh_token
+        })
+      elseif opts.code then
+        body = encode_query_string({
+          grant_type = "authorization_code",
+          code = opts.code
+        })
+      else
+        body = error("unknown method for identity token (expecting code or refresh_token)")
+      end
       local encode_base64
       encode_base64 = require("lapis.util.encoding").encode_base64
       local headers = {
@@ -56,8 +69,8 @@ do
       }
       local out = { }
       local res, status = assert(self:http().request({
+        method = "POST",
         url = tostring(self.url) .. "identity/openidconnect/tokenservice",
-        method = method,
         headers = headers,
         sink = ltn12.sink.table(out),
         source = body and ltn12.source.string(body) or nil,
