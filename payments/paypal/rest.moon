@@ -47,8 +47,6 @@ class PayPalRest extends require "payments.base_client"
     "#{url}?#{params}"
 
   identity_token: (opts={}) =>
-    return unless @need_refresh!
-
     parse_url = require("socket.url").parse
     host = assert parse_url(@url).host
 

@@ -38,9 +38,6 @@ do
       if opts == nil then
         opts = { }
       end
-      if not (self:need_refresh()) then
-        return 
-      end
       local parse_url = require("socket.url").parse
       local host = assert(parse_url(self.url).host)
       local body
