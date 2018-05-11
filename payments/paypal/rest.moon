@@ -264,3 +264,18 @@ class PayPalRest extends require "payments.base_client"
       path: "payments/payment/#{payment_id}"
     }
 
+  get_customer_partner_referral: (partner_id, opts) =>
+    assert partner_id, "missing partner id"
+    @_request {
+      method: "GET"
+      path: "customer/partner-referrals/#{partner_id}"
+      params: opts
+    }
+
+  -- POST /v1/customer/partner-referrals
+  create_customer_partner_referral: (opts) =>
+    @_request {
+      method: "POST"
+      path: "customer/partner-referrals"
+      params: opts
+    }

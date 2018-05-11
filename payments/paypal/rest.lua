@@ -237,6 +237,21 @@ do
         method = "GET",
         path = "payments/payment/" .. tostring(payment_id)
       })
+    end,
+    get_customer_partner_referral = function(self, partner_id, opts)
+      assert(partner_id, "missing partner id")
+      return self:_request({
+        method = "GET",
+        path = "customer/partner-referrals/" .. tostring(partner_id),
+        params = opts
+      })
+    end,
+    create_customer_partner_referral = function(self, opts)
+      return self:_request({
+        method = "POST",
+        path = "customer/partner-referrals",
+        params = opts
+      })
     end
   }
   _base_0.__index = _base_0
