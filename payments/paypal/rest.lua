@@ -180,7 +180,8 @@ do
         source = body and ltn12.source.string(body) or nil,
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
       }))
-      return json.decode(concat(out)), status
+      out = concat(out)
+      return json.decode(out), status
     end,
     get_payments = function(self, opts)
       return self:_request({
@@ -230,6 +231,13 @@ do
       return self:_request({
         method = "GET",
         path = "payments/sale/" .. tostring(transaction_id)
+      })
+    end,
+    create_payment = function(self, opts)
+      return self:_request({
+        method = "POST",
+        path = "payments/payment",
+        params = opts
       })
     end,
     payment = function(self, payment_id)

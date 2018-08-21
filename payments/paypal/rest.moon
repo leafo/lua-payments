@@ -199,7 +199,8 @@ class PayPalRest extends require "payments.base_client"
       protocol: @http_provider == "ssl.https" and "sslv23" or nil
     }
 
-    json.decode(concat out), status
+    out = concat out
+    json.decode(out), status
 
   get_payments: (opts) =>
     @_request {
@@ -255,6 +256,13 @@ class PayPalRest extends require "payments.base_client"
     @_request {
       method: "GET"
       path: "payments/sale/#{transaction_id}"
+    }
+
+  create_payment: (opts) =>
+    @_request {
+      method: "POST"
+      path: "payments/payment"
+      params: opts
     }
 
   payment: (payment_id) =>
