@@ -251,12 +251,15 @@ class PayPalRest extends require "payments.base_client"
       path: "payments/payouts/#{batch_id}"
     }
 
-  sale_transaction: (transaction_id) =>
+  get_sale_transaction: (transaction_id) =>
     -- GET /v1/payments/sale/<Transaction-Id>
     @_request {
       method: "GET"
       path: "payments/sale/#{transaction_id}"
     }
+
+  -- deprecated method alias
+  sale_transaction: (...) => @get_sale_transaction ...
 
   create_payment: (opts) =>
     @_request {
@@ -265,7 +268,7 @@ class PayPalRest extends require "payments.base_client"
       params: opts
     }
 
-  payment: (payment_id) =>
+  get_payment: (payment_id) =>
     -- GET /v1/payments/payment/<Payment-Id>
     @_request {
       method: "GET"

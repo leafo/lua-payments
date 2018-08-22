@@ -227,11 +227,14 @@ do
         path = "payments/payouts/" .. tostring(batch_id)
       })
     end,
-    sale_transaction = function(self, transaction_id)
+    get_sale_transaction = function(self, transaction_id)
       return self:_request({
         method = "GET",
         path = "payments/sale/" .. tostring(transaction_id)
       })
+    end,
+    sale_transaction = function(self, ...)
+      return self:get_sale_transaction(...)
     end,
     create_payment = function(self, opts)
       return self:_request({
@@ -240,7 +243,7 @@ do
         params = opts
       })
     end,
-    payment = function(self, payment_id)
+    get_payment = function(self, payment_id)
       return self:_request({
         method = "GET",
         path = "payments/payment/" .. tostring(payment_id)
