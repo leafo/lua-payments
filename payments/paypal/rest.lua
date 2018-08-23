@@ -243,6 +243,13 @@ do
         params = opts
       })
     end,
+    execute_payment = function(self, payment_id, opts)
+      return self:_request({
+        method = "POST",
+        path = "payments/payment/" .. tostring(payment_id) .. "/execute",
+        params = opts
+      })
+    end,
     get_payment = function(self, payment_id)
       return self:_request({
         method = "GET",

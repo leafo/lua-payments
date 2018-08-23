@@ -268,6 +268,13 @@ class PayPalRest extends require "payments.base_client"
       params: opts
     }
 
+  execute_payment: (payment_id, opts) =>
+    @_request {
+      method: "POST"
+      path: "payments/payment/#{payment_id}/execute"
+      params: opts
+    }
+
   get_payment: (payment_id) =>
     -- GET /v1/payments/payment/<Payment-Id>
     @_request {
