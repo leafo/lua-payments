@@ -250,6 +250,16 @@ do
         params = opts
       })
     end,
+    refund_sale = function(self, sale_id, opts)
+      if opts == nil then
+        opts = { }
+      end
+      return self:_request({
+        method = "POST",
+        path = "payments/sale/" .. tostring(sale_id) .. "/refund",
+        params = opts
+      })
+    end,
     get_payment = function(self, payment_id)
       return self:_request({
         method = "GET",

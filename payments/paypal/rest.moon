@@ -275,6 +275,13 @@ class PayPalRest extends require "payments.base_client"
       params: opts
     }
 
+  refund_sale: (sale_id, opts={}) =>
+    @_request {
+      method: "POST"
+      path: "payments/sale/#{sale_id}/refund"
+      params: opts
+    }
+
   get_payment: (payment_id) =>
     -- GET /v1/payments/payment/<Payment-Id>
     @_request {
