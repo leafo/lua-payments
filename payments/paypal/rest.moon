@@ -294,7 +294,7 @@ class PayPalRest extends require "payments.base_client"
     @_request {
       method: "GET"
       path: "customer/partner-referrals/#{partner_id}"
-      params: opts
+      url_params: opts
     }
 
   -- POST /v1/customer/partner-referrals
@@ -304,3 +304,11 @@ class PayPalRest extends require "payments.base_client"
       path: "customer/partner-referrals"
       params: opts
     }
+
+  get_customer_disputes: (opts) =>
+    @_request {
+      method: "GET"
+      path: "customer/disputes"
+      url_params: opts
+    }
+

@@ -271,7 +271,7 @@ do
       return self:_request({
         method = "GET",
         path = "customer/partner-referrals/" .. tostring(partner_id),
-        params = opts
+        url_params = opts
       })
     end,
     create_customer_partner_referral = function(self, opts)
@@ -279,6 +279,13 @@ do
         method = "POST",
         path = "customer/partner-referrals",
         params = opts
+      })
+    end,
+    get_customer_disputes = function(self, opts)
+      return self:_request({
+        method = "GET",
+        path = "customer/disputes",
+        url_params = opts
       })
     end
   }
