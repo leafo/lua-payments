@@ -312,3 +312,11 @@ class PayPalRest extends require "payments.base_client"
       url_params: opts
     }
 
+  get_customer_dispute: (dispute_id, opts) =>
+    @_request {
+      method: "GET"
+      path: "customer/disputes/#{dispute_id}"
+      url_params: opts
+    }
+
+

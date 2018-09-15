@@ -287,6 +287,13 @@ do
         path = "customer/disputes",
         url_params = opts
       })
+    end,
+    get_customer_dispute = function(self, dispute_id, opts)
+      return self:_request({
+        method = "GET",
+        path = "customer/disputes/" .. tostring(dispute_id),
+        url_params = opts
+      })
     end
   }
   _base_0.__index = _base_0
