@@ -313,10 +313,20 @@ class PayPalRest extends require "payments.base_client"
     }
 
   get_customer_dispute: (dispute_id, opts) =>
+    assert dispute_id, "missing dispute id"
     @_request {
       method: "GET"
       path: "customer/disputes/#{dispute_id}"
       url_params: opts
     }
+
+  dispute_accept_claim: (dispute_id, opts) =>
+    assert dispute_id, "missing dispute id"
+    @_request {
+      method: "GET"
+      path: "customer/disputes/#{dispute_id}/accept-claim"
+      params: opts
+    }
+
 
 

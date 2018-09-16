@@ -289,10 +289,19 @@ do
       })
     end,
     get_customer_dispute = function(self, dispute_id, opts)
+      assert(dispute_id, "missing dispute id")
       return self:_request({
         method = "GET",
         path = "customer/disputes/" .. tostring(dispute_id),
         url_params = opts
+      })
+    end,
+    dispute_accept_claim = function(self, dispute_id, opts)
+      assert(dispute_id, "missing dispute id")
+      return self:_request({
+        method = "GET",
+        path = "customer/disputes/" .. tostring(dispute_id) .. "/accept-claim",
+        params = opts
       })
     end
   }
