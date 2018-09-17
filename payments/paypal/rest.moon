@@ -328,5 +328,12 @@ class PayPalRest extends require "payments.base_client"
       params: opts
     }
 
+  dispute_escalate: (dispute_id, opts) =>
+    assert dispute_id, "missing dispute id"
+    @_request {
+      method: "GET"
+      path: "customer/disputes/#{dispute_id}/escalate"
+      params: opts
+    }
 
 

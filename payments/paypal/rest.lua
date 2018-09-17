@@ -303,6 +303,14 @@ do
         path = "customer/disputes/" .. tostring(dispute_id) .. "/accept-claim",
         params = opts
       })
+    end,
+    dispute_escalate = function(self, dispute_id, opts)
+      assert(dispute_id, "missing dispute id")
+      return self:_request({
+        method = "GET",
+        path = "customer/disputes/" .. tostring(dispute_id) .. "/escalate",
+        params = opts
+      })
     end
   }
   _base_0.__index = _base_0
