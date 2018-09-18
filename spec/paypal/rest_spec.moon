@@ -52,7 +52,8 @@ describe "paypal", ->
             Host: "api.paypal.com"
             Accept: "application/json"
             Authorization: "Bearer ACCESS_TOKEN"
-            "Content-Type": "application/json"
+            "Content-Type": if req.method == "POST"
+              "application/json"
             "Accept-Language": "en_US"
             "Content-length": types.pattern("%d+")\is_optional!
           }
