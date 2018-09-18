@@ -25,6 +25,9 @@ class PayPalRest extends require "payments.base_client"
     @url = @sandbox and @@urls.sandbox or @@urls.default
     @client_id = assert opts.client_id, "missing client id"
     @secret = assert opts.secret, "missing secret"
+
+    @partner_id = opts.partner_id
+
     super opts
 
   format_price: (...) => format_price ...
@@ -289,11 +292,22 @@ class PayPalRest extends require "payments.base_client"
       path: "payments/payment/#{payment_id}"
     }
 
-  get_customer_partner_referral: (partner_id, opts) =>
-    assert partner_id, "missing partner id"
+  get_customer_partner_referral: (partner_referral_id, opts) =>
+    assert partner_referral_id, "missing partner referral id"
     @_request {
       method: "GET"
-      path: "customer/partner-referrals/#{partner_id}"
+      path: "customer/partner-referrals/#{partner_referral_id}"
+      url_params: opts
+    }
+
+  get_customer_partner_merchant_integration: (partner_id, merchant_id, opts) =>
+    assert partner_id, "missing partner id"
+    assert merchant_id, "missing merchant id"
+
+    -- /v1/customer/partners/{partner_id}/merchant-integrations/{merchant_id}
+    @_request {
+      method: "GET"
+      path: "customer/partners/#{partner_id}/merchant-integrations/#{merchant_id}"
       url_params: opts
     }
 

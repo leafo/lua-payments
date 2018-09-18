@@ -266,11 +266,20 @@ do
         path = "payments/payment/" .. tostring(payment_id)
       })
     end,
-    get_customer_partner_referral = function(self, partner_id, opts)
-      assert(partner_id, "missing partner id")
+    get_customer_partner_referral = function(self, partner_referral_id, opts)
+      assert(partner_referral_id, "missing partner referral id")
       return self:_request({
         method = "GET",
-        path = "customer/partner-referrals/" .. tostring(partner_id),
+        path = "customer/partner-referrals/" .. tostring(partner_referral_id),
+        url_params = opts
+      })
+    end,
+    get_customer_partner_merchant_integration = function(self, partner_id, merchant_id, opts)
+      assert(partner_id, "missing partner id")
+      assert(merchant_id, "missing merchant id")
+      return self:_request({
+        method = "GET",
+        path = "customer/partners/" .. tostring(partner_id) .. "/merchant-integrations/" .. tostring(merchant_id),
         url_params = opts
       })
     end,
@@ -321,6 +330,7 @@ do
       self.url = self.sandbox and self.__class.urls.sandbox or self.__class.urls.default
       self.client_id = assert(opts.client_id, "missing client id")
       self.secret = assert(opts.secret, "missing secret")
+      self.partner_id = opts.partner_id
       return _class_0.__parent.__init(self, opts)
     end,
     __base = _base_0,
