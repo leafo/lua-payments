@@ -205,12 +205,15 @@ class Stripe extends require "payments.base_client"
   resource "charges", edit: false
   resource "disputes", edit: false
   resource "refunds", edit: false
-  resource "products", edit: false
   resource "transfers", edit: false
   resource "balance_transactions", edit: false, path: "balance/history"
   resource "application_fees", edit: false
   resource "events", edit: false
   resource "bitcoin_receivers", edit: false, path: "bitcoin/receivers"
+
+  resource "products"
+  resource "plans"
+  resource "subscriptions"
 
   -- charge a card with amount cents
   -- TODO: replace this with resource
