@@ -85,7 +85,8 @@ do
         ["Authorization"] = "Basic " .. encode_base64(access_token .. ":"),
         ["Content-Type"] = "application/x-www-form-urlencoded",
         ["Content-length"] = body and tostring(#body) or nil,
-        ["Stripe-Account"] = self.stripe_account_id
+        ["Stripe-Account"] = self.stripe_account_id,
+        ["Stripe-Version"] = self.stripe_version
       }
       if more_headers then
         for k, v in pairs(more_headers) do
@@ -220,6 +221,7 @@ do
       self.client_secret = assert(opts.client_secret, "missing client secret")
       self.publishable_key = opts.publishable_key
       self.stripe_account_id = opts.stripe_account_id
+      self.stripe_version = opts.stripe_version
       return _class_0.__parent.__init(self, opts)
     end,
     __base = _base_0,
