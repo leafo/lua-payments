@@ -46,6 +46,7 @@ class Stripe extends require "payments.base_client"
     @client_secret = assert opts.client_secret, "missing client secret"
     @publishable_key = opts.publishable_key
     @stripe_account_id = opts.stripe_account_id
+    @stripe_version = opts.stripe_version
     super opts
 
   for_account_id: (account_id) =>
@@ -54,6 +55,7 @@ class Stripe extends require "payments.base_client"
       client_secret: @client_secret
       publishable_key: @publishable_key
       stripe_account_id: account_id
+      stripe_version: @stripe_version
       http_provider: @http_provider
     }
 
@@ -141,6 +143,7 @@ class Stripe extends require "payments.base_client"
       "Content-Type": "application/x-www-form-urlencoded"
       "Content-length": body and tostring(#body) or nil
       "Stripe-Account": @stripe_account_id
+      "Stripe-Version": @stripe_version
     }
 
     if more_headers
