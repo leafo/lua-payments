@@ -20,6 +20,7 @@ do
         client_secret = self.client_secret,
         publishable_key = self.publishable_key,
         stripe_account_id = account_id,
+        stripe_version = self.stripe_version,
         http_provider = self.http_provider
       })
       out.http = self.http
@@ -329,6 +330,9 @@ do
   resource("products")
   resource("plans")
   resource("subscriptions")
+  resource("invoices", {
+    edit = false
+  })
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
   end
