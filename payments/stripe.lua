@@ -333,6 +333,10 @@ do
   resource("invoices", {
     edit = false
   })
+  resource("upcoming_invoices", {
+    edit = false,
+    path = "invoices/upcoming"
+  })
   if _parent_0.__inherited then
     _parent_0.__inherited(_parent_0, _class_0)
   end
