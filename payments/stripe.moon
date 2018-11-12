@@ -219,6 +219,7 @@ class Stripe extends require "payments.base_client"
   resource "subscriptions"
   resource "invoices", edit: false
   resource "upcoming_invoices", edit: false, path: "invoices/upcoming"
+  resource "coupons"
 
   -- charge a card with amount cents
   -- TODO: replace this with resource
