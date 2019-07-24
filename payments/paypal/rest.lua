@@ -320,6 +320,13 @@ do
         path = "customer/disputes/" .. tostring(dispute_id) .. "/escalate",
         params = opts
       })
+    end,
+    create_checkout_order = function(self, opts)
+      return self:_request({
+        method = "POST",
+        path = "checkout/orders",
+        params = opts
+      })
     end
   }
   _base_0.__index = _base_0

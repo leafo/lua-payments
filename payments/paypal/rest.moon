@@ -350,4 +350,10 @@ class PayPalRest extends require "payments.base_client"
       params: opts
     }
 
-
+  create_checkout_order: (opts) =>
+    @_request {
+      method: "POST"
+      path: "checkout/orders"
+      params: opts
+    }
+  
