@@ -146,3 +146,57 @@ describe "paypal", ->
             }
           }
 
+
+        it "create_checkout_order", ->
+          paypal\create_checkout_order {
+            intent: "sale"
+            payer: {
+              payment_method: "paypal"
+            }
+
+            application_context: {
+              shipping_preference: "NO_SHIPPING"
+            }
+
+            transactions: {
+              {
+                amount: {
+                  total: "$100.0"
+                  currency: "USD"
+                }
+
+                description: "Ghost shoes"
+                invoice_number: "200"
+              }
+            }
+          }
+
+          assert.same 1, #http_requests
+
+          assert_api_requrest http_requests[1], {
+            method: "POST"
+            url: "https://api.paypal.com/v1/checkout/orders",
+            body: {
+              intent: "sale"
+              payer: {
+                payment_method: "paypal"
+              }
+
+              application_context: {
+                shipping_preference: "NO_SHIPPING"
+              }
+
+              transactions: {
+                {
+                  amount: {
+                    total: "$100.0"
+                    currency: "USD"
+                  }
+
+                  description: "Ghost shoes"
+                  invoice_number: "200"
+                }
+              }
+            }
+          }
+
