@@ -12,8 +12,11 @@ do
   local _parent_0 = require("payments.base_client")
   local _base_0 = {
     api_version = "v1",
-    url_with_version = function(self)
-      return tostring(self.url) .. tostring(self.api_version) .. "/"
+    url_with_version = function(self, v)
+      if v == nil then
+        v = self.api_version
+      end
+      return tostring(self.url) .. tostring(v) .. "/"
     end,
     format_price = function(self, ...)
       return format_price(...)
@@ -43,7 +46,8 @@ do
         opts = { }
       end
       local parse_url = require("socket.url").parse
-      local host = assert(parse_url(self:url_with_version()).host)
+      local url = tostring(self:url_with_version("v1")) .. "identity/openidconnect/tokenservice"
+      local host = assert(parse_url(url).host)
       local body
       if opts.refresh_token then
         body = encode_query_string({
@@ -71,7 +75,7 @@ do
       local out = { }
       local res, status = assert(self:http().request({
         method = "POST",
-        url = tostring(self:url_with_version()) .. "identity/openidconnect/tokenservice",
+        url = url,
         headers = headers,
         sink = ltn12.sink.table(out),
         source = body and ltn12.source.string(body) or nil,
@@ -121,9 +125,10 @@ do
         grant_type = "client_credentials"
       })
       local parse_url = require("socket.url").parse
-      local host = assert(parse_url(self:url_with_version()).host)
+      local url = tostring(self:url_with_version("v1")) .. "oauth2/token"
+      local host = assert(parse_url(url).host)
       local res, status = assert(self:http().request({
-        url = tostring(self:url_with_version()) .. "oauth2/token",
+        url = url,
         method = "POST",
         sink = ltn12.sink.table(out),
         source = ltn12.source.string(body),
@@ -140,7 +145,7 @@ do
       self.last_token_time = os.time()
       self.last_token = json.decode(concat(out))
       self.access_token = self.last_token.access_token
-      assert(self.access_token, "failed to get token from refresh")
+      assert(self.access_token, "failed to get token from refresh (" .. tostring(status) .. ")")
       return true
     end,
     _request = function(self, opts)

@@ -34,8 +34,8 @@ class PayPalRest extends require "payments.base_client"
 
     super opts
 
-  url_with_version: =>
-    "#{@url}#{@api_version}/"
+  url_with_version: (v=@api_version)=>
+    "#{@url}#{v}/"
 
   format_price: (...) => format_price ...
 
@@ -58,7 +58,8 @@ class PayPalRest extends require "payments.base_client"
 
   identity_token: (opts={}) =>
     parse_url = require("socket.url").parse
-    host = assert parse_url(@url_with_version!).host
+    url = "#{@url_with_version "v1"}identity/openidconnect/tokenservice"
+    host = assert parse_url(url).host
 
     body = if opts.refresh_token
       encode_query_string {
@@ -88,7 +89,7 @@ class PayPalRest extends require "payments.base_client"
 
     res, status = assert @http!.request {
       method: "POST"
-      url: "#{@url_with_version!}identity/openidconnect/tokenservice"
+      :url
       :headers
 
       sink: ltn12.sink.table out
@@ -140,10 +141,12 @@ class PayPalRest extends require "payments.base_client"
     body = encode_query_string grant_type: "client_credentials"
 
     parse_url = require("socket.url").parse
-    host = assert parse_url(@url_with_version!).host
+    url = "#{@url_with_version "v1"}oauth2/token"
+
+    host = assert parse_url(url).host
 
     res, status = assert @http!.request {
-      url: "#{@url_with_version!}oauth2/token"
+      :url
       method: "POST"
       sink: ltn12.sink.table out
       source: ltn12.source.string(body)
@@ -162,7 +165,7 @@ class PayPalRest extends require "payments.base_client"
     @last_token_time = os.time!
     @last_token = json.decode concat out
     @access_token = @last_token.access_token
-    assert @access_token, "failed to get token from refresh"
+    assert @access_token, "failed to get token from refresh (#{status})"
 
     true
 
