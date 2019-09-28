@@ -200,3 +200,35 @@ describe "paypal", ->
             }
           }
 
+        it "create_checkout_order with different api version", ->
+          paypal.api_version = "v2"
+          paypal\create_checkout_order {
+            "intent": "CAPTURE",
+            "purchase_units": {
+              {
+                "amount": {
+                  "currency_code": "USD",
+                  "value": "100.00"
+                }
+              }
+            }
+          }
+
+          assert.same 1, #http_requests
+
+          assert_api_requrest http_requests[1], {
+            method: "POST"
+            url: "https://api.paypal.com/v2/checkout/orders",
+            body: {
+              "intent": "CAPTURE",
+              "purchase_units": {
+                {
+                  "amount": {
+                    "currency_code": "USD",
+                    "value": "100.00"
+                  }
+                }
+              }
+            }
+          }
+

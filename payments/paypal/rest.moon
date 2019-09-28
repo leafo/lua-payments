@@ -28,7 +28,7 @@ class PayPalRest extends require "payments.base_client"
     @secret = assert opts.secret, "missing secret"
 
     if opts.api_version
-      @api_version = @opts.api_version
+      @api_version = opts.api_version
 
     @partner_id = opts.partner_id
 

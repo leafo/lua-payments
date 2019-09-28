@@ -345,7 +345,7 @@ do
       self.client_id = assert(opts.client_id, "missing client id")
       self.secret = assert(opts.secret, "missing secret")
       if opts.api_version then
-        self.api_version = self.opts.api_version
+        self.api_version = opts.api_version
       end
       self.partner_id = opts.partner_id
       return _class_0.__parent.__init(self, opts)
