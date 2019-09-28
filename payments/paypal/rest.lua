@@ -11,6 +11,10 @@ do
   local _class_0
   local _parent_0 = require("payments.base_client")
   local _base_0 = {
+    api_version = "v1",
+    url_with_version = function(self)
+      return tostring(self.url) .. tostring(self.api_version) .. "/"
+    end,
     format_price = function(self, ...)
       return format_price(...)
     end,
@@ -39,7 +43,7 @@ do
         opts = { }
       end
       local parse_url = require("socket.url").parse
-      local host = assert(parse_url(self.url).host)
+      local host = assert(parse_url(self:url_with_version()).host)
       local body
       if opts.refresh_token then
         body = encode_query_string({
@@ -67,7 +71,7 @@ do
       local out = { }
       local res, status = assert(self:http().request({
         method = "POST",
-        url = tostring(self.url) .. "identity/openidconnect/tokenservice",
+        url = tostring(self:url_with_version()) .. "identity/openidconnect/tokenservice",
         headers = headers,
         sink = ltn12.sink.table(out),
         source = body and ltn12.source.string(body) or nil,
@@ -117,9 +121,9 @@ do
         grant_type = "client_credentials"
       })
       local parse_url = require("socket.url").parse
-      local host = assert(parse_url(self.url).host)
+      local host = assert(parse_url(self:url_with_version()).host)
       local res, status = assert(self:http().request({
-        url = tostring(self.url) .. "oauth2/token",
+        url = tostring(self:url_with_version()) .. "oauth2/token",
         method = "POST",
         sink = ltn12.sink.table(out),
         source = ltn12.source.string(body),
@@ -159,12 +163,12 @@ do
       if params then
         body = json.encode(params)
       end
-      local url = tostring(self.url) .. tostring(path)
+      local url = tostring(self:url_with_version()) .. tostring(path)
       if url_params then
         url = url .. ("?" .. encode_query_string(url_params))
       end
       local parse_url = require("socket.url").parse
-      local host = assert(parse_url(self.url).host)
+      local host = assert(parse_url(self:url_with_version()).host)
       local res, status = assert(self:http().request({
         url = url,
         method = method,
@@ -333,10 +337,16 @@ do
   setmetatable(_base_0, _parent_0.__base)
   _class_0 = setmetatable({
     __init = function(self, opts)
+      if opts == nil then
+        opts = { }
+      end
       self.sandbox = opts.sandbox or false
       self.url = self.sandbox and self.__class.urls.sandbox or self.__class.urls.default
       self.client_id = assert(opts.client_id, "missing client id")
       self.secret = assert(opts.secret, "missing secret")
+      if opts.api_version then
+        self.api_version = self.opts.api_version
+      end
       self.partner_id = opts.partner_id
       return _class_0.__parent.__init(self, opts)
     end,
@@ -364,8 +374,8 @@ do
   _base_0.__class = _class_0
   local self = _class_0
   self.urls = {
-    default = "https://api.paypal.com/v1/",
-    sandbox = "https://api.sandbox.paypal.com/v1/",
+    default = "https://api.paypal.com/",
+    sandbox = "https://api.sandbox.paypal.com/",
     login_default = "https://www.paypal.com/signin/authorize",
     login_sandbox = "https://www.sandbox.paypal.com/signin/authorize"
   }

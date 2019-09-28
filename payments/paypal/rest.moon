@@ -2,7 +2,6 @@
 json = require "cjson"
 ltn12 = require "ltn12"
 
-
 import format_price from require "payments.paypal.helpers"
 
 import encode_query_string from require "lapis.util"
@@ -12,23 +11,31 @@ import concat from table
 -- Paypal REST API:
 -- https://developer.paypal.com/docs/api/
 class PayPalRest extends require "payments.base_client"
+  api_version: "v1"
+
   @urls: {
-    default: "https://api.paypal.com/v1/"
-    sandbox: "https://api.sandbox.paypal.com/v1/"
+    default: "https://api.paypal.com/" -- + api_version
+    sandbox: "https://api.sandbox.paypal.com/" -- + api_version
 
     login_default: "https://www.paypal.com/signin/authorize"
     login_sandbox: "https://www.sandbox.paypal.com/signin/authorize"
   }
 
-  new: (opts) =>
+  new: (opts={}) =>
     @sandbox = opts.sandbox or false
     @url = @sandbox and @@urls.sandbox or @@urls.default
     @client_id = assert opts.client_id, "missing client id"
     @secret = assert opts.secret, "missing secret"
 
+    if opts.api_version
+      @api_version = @opts.api_version
+
     @partner_id = opts.partner_id
 
     super opts
+
+  url_with_version: =>
+    "#{@url}#{@api_version}/"
 
   format_price: (...) => format_price ...
 
@@ -51,7 +58,7 @@ class PayPalRest extends require "payments.base_client"
 
   identity_token: (opts={}) =>
     parse_url = require("socket.url").parse
-    host = assert parse_url(@url).host
+    host = assert parse_url(@url_with_version!).host
 
     body = if opts.refresh_token
       encode_query_string {
@@ -81,7 +88,7 @@ class PayPalRest extends require "payments.base_client"
 
     res, status = assert @http!.request {
       method: "POST"
-      url: "#{@url}identity/openidconnect/tokenservice"
+      url: "#{@url_with_version!}identity/openidconnect/tokenservice"
       :headers
 
       sink: ltn12.sink.table out
@@ -133,10 +140,10 @@ class PayPalRest extends require "payments.base_client"
     body = encode_query_string grant_type: "client_credentials"
 
     parse_url = require("socket.url").parse
-    host = assert parse_url(@url).host
+    host = assert parse_url(@url_with_version!).host
 
     res, status = assert @http!.request {
-      url: "#{@url}oauth2/token"
+      url: "#{@url_with_version!}oauth2/token"
       method: "POST"
       sink: ltn12.sink.table out
       source: ltn12.source.string(body)
@@ -175,13 +182,13 @@ class PayPalRest extends require "payments.base_client"
 
     body = if params then json.encode params
 
-    url = "#{@url}#{path}"
+    url = "#{@url_with_version!}#{path}"
 
     if url_params
       url ..= "?" .. encode_query_string url_params
 
     parse_url = require("socket.url").parse
-    host = assert parse_url(@url).host
+    host = assert parse_url(@url_with_version!).host
 
     res, status = assert @http!.request {
       :url
