@@ -185,7 +185,7 @@ class PayPalRest extends require "payments.base_client"
 
     body = if params then json.encode params
 
-    url = "#{@url_with_version!}#{path}"
+    url = "#{@url_with_version opts.api_version}#{path}"
 
     if url_params
       url ..= "?" .. encode_query_string url_params

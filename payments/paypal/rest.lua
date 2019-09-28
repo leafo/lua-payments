@@ -168,7 +168,7 @@ do
       if params then
         body = json.encode(params)
       end
-      local url = tostring(self:url_with_version()) .. tostring(path)
+      local url = tostring(self:url_with_version(opts.api_version)) .. tostring(path)
       if url_params then
         url = url .. ("?" .. encode_query_string(url_params))
       end
