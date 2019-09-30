@@ -2,7 +2,7 @@
 json = require "cjson"
 ltn12 = require "ltn12"
 
-import format_price from require "payments.paypal.helpers"
+import format_price, extend from require "payments.paypal.helpers"
 
 import encode_query_string from require "lapis.util"
 
@@ -194,18 +194,14 @@ class PayPalRest extends require "payments.base_client"
     parse_url = require("socket.url").parse
     host = assert parse_url(@url_with_version!).host
 
-    headers = {
+    headers = extend {
       "Host": host
       "Content-length": body and tostring(#body) or nil
       "Authorization": authorization
       "Content-Type": body and "application/json"
       "Accept": "application/json"
       "Accept-Language": "en_US"
-    }
-
-    if opts.headers
-      for k,v in pairs opts.headers
-        headers[k] = v
+    }, opts.headers
 
     res, status = assert @http!.request {
       :url
@@ -372,9 +368,9 @@ class PayPalRest extends require "payments.base_client"
       path: "checkout/orders"
       params: params
       api_version: opts and opts.api_version
-      headers: {
+      headers: extend {
         "PayPal-Partner-Attribution-Id": @bn_code
-      }
+      }, opts and opts.headers
     }
   
   get_order: (order_id, opts) =>
@@ -393,7 +389,17 @@ class PayPalRest extends require "payments.base_client"
       path: "checkout/orders/#{order_id}/capture"
       params: {}
       api_version: opts and opts.api_version
-      headers: {
+      headers: extend {
         "PayPal-Partner-Attribution-Id": @bn_code
-      }
+      }, opts and opts.headers
+    }
+
+  refund_capture: (capture_id, opts) =>
+    assert capture_id, "missing capture id"
+    @_request {
+      method: "POST"
+      path: "payments/captures/#{capture_id}/refund"
+      params: {}
+      api_version: opts and opts.api_version
+      headers: opts.headers
     }

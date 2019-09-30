@@ -1,7 +1,10 @@
 local json = require("cjson")
 local ltn12 = require("ltn12")
-local format_price
-format_price = require("payments.paypal.helpers").format_price
+local format_price, extend
+do
+  local _obj_0 = require("payments.paypal.helpers")
+  format_price, extend = _obj_0.format_price, _obj_0.extend
+end
 local encode_query_string
 encode_query_string = require("lapis.util").encode_query_string
 local concat
@@ -174,19 +177,14 @@ do
       end
       local parse_url = require("socket.url").parse
       local host = assert(parse_url(self:url_with_version()).host)
-      local headers = {
+      local headers = extend({
         ["Host"] = host,
         ["Content-length"] = body and tostring(#body) or nil,
         ["Authorization"] = authorization,
         ["Content-Type"] = body and "application/json",
         ["Accept"] = "application/json",
         ["Accept-Language"] = "en_US"
-      }
-      if opts.headers then
-        for k, v in pairs(opts.headers) do
-          headers[k] = v
-        end
-      end
+      }, opts.headers)
       local res, status = assert(self:http().request({
         url = url,
         method = method,
@@ -342,9 +340,9 @@ do
         path = "checkout/orders",
         params = params,
         api_version = opts and opts.api_version,
-        headers = {
+        headers = extend({
           ["PayPal-Partner-Attribution-Id"] = self.bn_code
-        }
+        }, opts and opts.headers)
       })
     end,
     get_order = function(self, order_id, opts)
@@ -362,9 +360,19 @@ do
         path = "checkout/orders/" .. tostring(order_id) .. "/capture",
         params = { },
         api_version = opts and opts.api_version,
-        headers = {
+        headers = extend({
           ["PayPal-Partner-Attribution-Id"] = self.bn_code
-        }
+        }, opts and opts.headers)
+      })
+    end,
+    refund_capture = function(self, capture_id, opts)
+      assert(capture_id, "missing capture id")
+      return self:_request({
+        method = "POST",
+        path = "payments/captures/" .. tostring(capture_id) .. "/refund",
+        params = { },
+        api_version = opts and opts.api_version,
+        headers = opts.headers
       })
     end
   }
