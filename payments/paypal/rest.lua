@@ -346,6 +346,14 @@ do
           ["PayPal-Partner-Attribution-Id"] = self.bn_code
         }
       })
+    end,
+    get_order = function(self, order_id, opts)
+      assert(order_id, "missing order id")
+      return self:_request({
+        method = "GET",
+        path = "checkout/orders/" .. tostring(order_id),
+        api_version = opts and opts.api_version
+      })
     end
   }
   _base_0.__index = _base_0

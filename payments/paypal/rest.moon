@@ -377,3 +377,12 @@ class PayPalRest extends require "payments.base_client"
       }
     }
   
+
+  get_order: (order_id, opts) =>
+    assert order_id, "missing order id"
+    @_request {
+      method: "GET"
+      path: "checkout/orders/#{order_id}"
+      api_version: opts and opts.api_version
+    }
+
