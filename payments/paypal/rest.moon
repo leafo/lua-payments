@@ -26,6 +26,7 @@ class PayPalRest extends require "payments.base_client"
     @url = @sandbox and @@urls.sandbox or @@urls.default
     @client_id = assert opts.client_id, "missing client id"
     @secret = assert opts.secret, "missing secret"
+    @bn_code = opts.bn_code
 
     if opts.api_version
       @api_version = opts.api_version
@@ -193,18 +194,23 @@ class PayPalRest extends require "payments.base_client"
     parse_url = require("socket.url").parse
     host = assert parse_url(@url_with_version!).host
 
+    headers = {
+      "Host": host
+      "Content-length": body and tostring(#body) or nil
+      "Authorization": authorization
+      "Content-Type": body and "application/json"
+      "Accept": "application/json"
+      "Accept-Language": "en_US"
+    }
+
+    if opts.headers
+      for k,v in pairs opts.headers
+        headers[k] = v
+
     res, status = assert @http!.request {
       :url
       :method
-
-      headers: {
-        "Host": host
-        "Content-length": body and tostring(#body) or nil
-        "Authorization": authorization
-        "Content-Type": body and "application/json"
-        "Accept": "application/json"
-        "Accept-Language": "en_US"
-      }
+      :headers
 
       sink: ltn12.sink.table out
       source: body and ltn12.source.string(body) or nil
@@ -360,10 +366,14 @@ class PayPalRest extends require "payments.base_client"
       params: opts
     }
 
-  create_checkout_order: (opts) =>
+  create_checkout_order: (params, opts) =>
     @_request {
       method: "POST"
       path: "checkout/orders"
-      params: opts
+      params: params
+      api_version: opts and opts.api_version
+      headers: {
+        "PayPal-Partner-Attribution-Id": @bn_code
+      }
     }
   

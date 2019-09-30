@@ -174,17 +174,23 @@ do
       end
       local parse_url = require("socket.url").parse
       local host = assert(parse_url(self:url_with_version()).host)
+      local headers = {
+        ["Host"] = host,
+        ["Content-length"] = body and tostring(#body) or nil,
+        ["Authorization"] = authorization,
+        ["Content-Type"] = body and "application/json",
+        ["Accept"] = "application/json",
+        ["Accept-Language"] = "en_US"
+      }
+      if opts.headers then
+        for k, v in pairs(opts.headers) do
+          headers[k] = v
+        end
+      end
       local res, status = assert(self:http().request({
         url = url,
         method = method,
-        headers = {
-          ["Host"] = host,
-          ["Content-length"] = body and tostring(#body) or nil,
-          ["Authorization"] = authorization,
-          ["Content-Type"] = body and "application/json",
-          ["Accept"] = "application/json",
-          ["Accept-Language"] = "en_US"
-        },
+        headers = headers,
         sink = ltn12.sink.table(out),
         source = body and ltn12.source.string(body) or nil,
         protocol = self.http_provider == "ssl.https" and "sslv23" or nil
@@ -330,11 +336,15 @@ do
         params = opts
       })
     end,
-    create_checkout_order = function(self, opts)
+    create_checkout_order = function(self, params, opts)
       return self:_request({
         method = "POST",
         path = "checkout/orders",
-        params = opts
+        params = params,
+        api_version = opts and opts.api_version,
+        headers = {
+          ["PayPal-Partner-Attribution-Id"] = self.bn_code
+        }
       })
     end
   }
@@ -349,6 +359,7 @@ do
       self.url = self.sandbox and self.__class.urls.sandbox or self.__class.urls.default
       self.client_id = assert(opts.client_id, "missing client id")
       self.secret = assert(opts.secret, "missing secret")
+      self.bn_code = opts.bn_code
       if opts.api_version then
         self.api_version = opts.api_version
       end
