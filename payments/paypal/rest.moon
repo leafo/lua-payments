@@ -377,7 +377,6 @@ class PayPalRest extends require "payments.base_client"
       }
     }
   
-
   get_order: (order_id, opts) =>
     assert order_id, "missing order id"
     @_request {
@@ -386,3 +385,15 @@ class PayPalRest extends require "payments.base_client"
       api_version: opts and opts.api_version
     }
 
+  capture_order: (order_id, opts) =>
+    assert order_id, "missing order id"
+
+    @_request {
+      method: "POST"
+      path: "checkout/orders/#{order_id}/capture"
+      params: {}
+      api_version: opts and opts.api_version
+      headers: {
+        "PayPal-Partner-Attribution-Id": @bn_code
+      }
+    }

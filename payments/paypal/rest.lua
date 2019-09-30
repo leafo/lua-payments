@@ -354,6 +354,18 @@ do
         path = "checkout/orders/" .. tostring(order_id),
         api_version = opts and opts.api_version
       })
+    end,
+    capture_order = function(self, order_id, opts)
+      assert(order_id, "missing order id")
+      return self:_request({
+        method = "POST",
+        path = "checkout/orders/" .. tostring(order_id) .. "/capture",
+        params = { },
+        api_version = opts and opts.api_version,
+        headers = {
+          ["PayPal-Partner-Attribution-Id"] = self.bn_code
+        }
+      })
     end
   }
   _base_0.__index = _base_0
