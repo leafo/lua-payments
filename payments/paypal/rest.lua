@@ -240,10 +240,11 @@ do
         path = "payments/payouts/" .. tostring(batch_id)
       })
     end,
-    get_sale_transaction = function(self, transaction_id)
+    get_sale_transaction = function(self, transaction_id, opts)
       return self:_request({
         method = "GET",
-        path = "payments/sale/" .. tostring(transaction_id)
+        path = "payments/sale/" .. tostring(transaction_id),
+        api_version = opts and opts.api_version
       })
     end,
     sale_transaction = function(self, ...)
@@ -363,6 +364,14 @@ do
         headers = extend({
           ["PayPal-Partner-Attribution-Id"] = self.bn_code
         }, opts and opts.headers)
+      })
+    end,
+    get_capture = function(self, capture_id, opts)
+      assert(capture_id, "missing capture id")
+      return self:_request({
+        method = "GET",
+        path = "payments/captures/" .. tostring(capture_id),
+        api_version = opts and opts.api_version
       })
     end,
     refund_capture = function(self, capture_id, opts)

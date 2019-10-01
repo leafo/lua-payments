@@ -266,11 +266,12 @@ class PayPalRest extends require "payments.base_client"
       path: "payments/payouts/#{batch_id}"
     }
 
-  get_sale_transaction: (transaction_id) =>
+  get_sale_transaction: (transaction_id, opts) =>
     -- GET /v1/payments/sale/<Transaction-Id>
     @_request {
       method: "GET"
       path: "payments/sale/#{transaction_id}"
+      api_version: opts and opts.api_version
     }
 
   -- deprecated method alias
@@ -392,6 +393,14 @@ class PayPalRest extends require "payments.base_client"
       headers: extend {
         "PayPal-Partner-Attribution-Id": @bn_code
       }, opts and opts.headers
+    }
+
+  get_capture: (capture_id, opts) =>
+    assert capture_id, "missing capture id"
+    @_request {
+      method: "GET"
+      path: "payments/captures/#{capture_id}"
+      api_version: opts and opts.api_version
     }
 
   refund_capture: (capture_id, opts) =>
