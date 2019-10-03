@@ -289,5 +289,8 @@ class Stripe extends require "payments.base_client"
   get_balance: =>
     @_request "GET", "balance"
 
+  create_checkout_session: (opts) =>
+    @_request "POST", "checkout/sessions", opts
+
 
 { :Stripe }

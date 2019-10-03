@@ -212,6 +212,9 @@ do
     end,
     get_balance = function(self)
       return self:_request("GET", "balance")
+    end,
+    create_checkout_session = function(self, opts)
+      return self:_request("POST", "checkout/sessions", opts)
     end
   }
   _base_0.__index = _base_0
