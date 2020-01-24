@@ -266,6 +266,22 @@ class PayPalRest extends require "payments.base_client"
       path: "payments/payouts/#{batch_id}"
     }
 
+  get_balance: (params) =>
+    -- GET /v1/reporting/balances
+    @_request {
+      method: "GET"
+      path: "reporting/balances"
+      url_params: params
+    }
+
+  get_transaction_report: (params) =>
+    -- GET /v1/reporting/transactions
+    @_request {
+      method: "GET"
+      path: "reporting/transactions"
+      url_params: params
+    }
+
   get_sale_transaction: (transaction_id, opts) =>
     -- GET /v1/payments/sale/<Transaction-Id>
     @_request {

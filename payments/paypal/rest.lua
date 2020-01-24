@@ -240,6 +240,20 @@ do
         path = "payments/payouts/" .. tostring(batch_id)
       })
     end,
+    get_balance = function(self, params)
+      return self:_request({
+        method = "GET",
+        path = "reporting/balances",
+        url_params = params
+      })
+    end,
+    get_transaction_report = function(self, params)
+      return self:_request({
+        method = "GET",
+        path = "reporting/transactions",
+        url_params = params
+      })
+    end,
     get_sale_transaction = function(self, transaction_id, opts)
       return self:_request({
         method = "GET",
