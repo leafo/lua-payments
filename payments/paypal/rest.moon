@@ -360,7 +360,8 @@ class PayPalRest extends require "payments.base_client"
     @_request {
       method: "GET"
       path: "customer/disputes/#{dispute_id}"
-      url_params: opts
+      api_version: opts and opts.api_version
+      headers: opts and opts.headers
     }
 
   dispute_accept_claim: (dispute_id, opts) =>
@@ -426,5 +427,5 @@ class PayPalRest extends require "payments.base_client"
       path: "payments/captures/#{capture_id}/refund"
       params: {}
       api_version: opts and opts.api_version
-      headers: opts.headers
+      headers: opts and opts.headers
     }

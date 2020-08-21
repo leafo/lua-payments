@@ -330,7 +330,8 @@ do
       return self:_request({
         method = "GET",
         path = "customer/disputes/" .. tostring(dispute_id),
-        url_params = opts
+        api_version = opts and opts.api_version,
+        headers = opts and opts.headers
       })
     end,
     dispute_accept_claim = function(self, dispute_id, opts)
@@ -395,7 +396,7 @@ do
         path = "payments/captures/" .. tostring(capture_id) .. "/refund",
         params = { },
         api_version = opts and opts.api_version,
-        headers = opts.headers
+        headers = opts and opts.headers
       })
     end
   }
