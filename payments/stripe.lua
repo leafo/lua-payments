@@ -304,9 +304,7 @@ do
     end
   })
   resource("customers")
-  resource("charges", {
-    edit = false
-  })
+  resource("charges")
   resource("disputes", {
     edit = false
   })

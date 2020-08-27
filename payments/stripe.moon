@@ -205,7 +205,7 @@ class Stripe extends require "payments.base_client"
 
   resource "customers"
 
-  resource "charges", edit: false
+  resource "charges"
   resource "disputes", edit: false
   resource "refunds", edit: false
   resource "transfers", edit: false
