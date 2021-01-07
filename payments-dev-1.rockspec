@@ -17,6 +17,7 @@ dependencies = {
   "luasocket",
   "luasec",
   "lapis", -- for encode_query_string
+	"tableshape",
 }
 
 build = {
