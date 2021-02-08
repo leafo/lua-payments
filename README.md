@@ -14,6 +14,10 @@ The following APIs are supported:
 * [PayPal Adaptive Payments](#paypal-adaptive-payments)
 * [PayPal REST](#paypal-rest-api)
 
+## Install
+
+    luarocks install payments
+
 ## Examples
 
 ### PayPal Express Checkout
