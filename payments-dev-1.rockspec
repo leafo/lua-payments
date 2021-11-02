@@ -2,7 +2,7 @@ package = "payments"
 version = "dev-1"
 
 source = {
-  url = "git://github.com/leafo/lua-payments.git",
+  url = "git+https://github.com/leafo/lua-payments.git",
 }
 
 description = {
