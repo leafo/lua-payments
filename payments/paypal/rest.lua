@@ -350,6 +350,14 @@ do
         params = opts
       })
     end,
+    dispute_send_message = function(self, dispute_id, opts)
+      assert(dispute_id, "missing dispute id")
+      return self:_request({
+        method = "GET",
+        path = "customer/disputes/" .. tostring(dispute_id) .. "/send-message",
+        params = opts
+      })
+    end,
     create_checkout_order = function(self, params, opts)
       return self:_request({
         method = "POST",

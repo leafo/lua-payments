@@ -364,6 +364,7 @@ class PayPalRest extends require "payments.base_client"
       headers: opts and opts.headers
     }
 
+  -- https://developer.paypal.com/api/customer-disputes/v1/#disputes-actions_accept-claim
   dispute_accept_claim: (dispute_id, opts) =>
     assert dispute_id, "missing dispute id"
     @_request {
@@ -377,6 +378,15 @@ class PayPalRest extends require "payments.base_client"
     @_request {
       method: "GET"
       path: "customer/disputes/#{dispute_id}/escalate"
+      params: opts
+    }
+
+  -- https://developer.paypal.com/api/customer-disputes/v1/#disputes-actions_send-message
+  dispute_send_message: (dispute_id, opts) =>
+    assert dispute_id, "missing dispute id"
+    @_request {
+      method: "GET"
+      path: "customer/disputes/#{dispute_id}/send-message"
       params: opts
     }
 
