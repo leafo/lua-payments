@@ -5,7 +5,7 @@ do
     http = function(self)
       if not (self._http) then
         self.http_provider = self.http_provider or (function()
-          if ngx then
+          if ngx and ngx.socket then
             return "lapis.nginx.http"
           else
             return "ssl.https"
