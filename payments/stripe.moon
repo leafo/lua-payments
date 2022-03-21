@@ -221,8 +221,9 @@ class Stripe extends require "payments.base_client"
   resource "upcoming_invoices", edit: false, path: "invoices/upcoming"
   resource "coupons"
 
+  -- NOTE: this is deprecated method, use the create_charge method part of the charges resource
+  -- NOTE: how fee is renamed to application_fee
   -- charge a card with amount cents
-  -- TODO: replace this with resource
   charge: (opts) =>
     {
       :access_token, :card, :customer, :source, :amount, :currency,
