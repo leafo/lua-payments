@@ -16,30 +16,30 @@ class Stripe extends require "payments.base_client"
     list_method = "list_#{name}"
 
     unless resource_opts.get == false
-      @__base[list_method] or= (opts) =>
-        @_request "GET", api_path, opts
+      @__base[list_method] or= (...) =>
+        @_request "GET", api_path, ...
 
-      @__base["each_#{singular}"] or= (opts) =>
-        @_iterate_resource @[list_method], opts
+      @__base["each_#{singular}"] or= (...) =>
+        @_iterate_resource @[list_method], ...
 
-      @__base["get_#{singular}"] or= (id, opts) =>
-        @_request "GET", "#{api_path}/#{id}", opts
+      @__base["get_#{singular}"] or= (id, ...) =>
+        @_request "GET", "#{api_path}/#{id}", ...
 
     unless resource_opts.edit == false
-      @__base["update_#{singular}"] or= (id, opts) =>
+      @__base["update_#{singular}"] or= (id, opts, ...) =>
         if resource_opts.update
           opts = resource_opts.update @, opts
 
-        @_request "POST", "#{api_path}/#{id}", opts
+        @_request "POST", "#{api_path}/#{id}", opts, ...
 
       @__base["delete_#{singular}"] or= (id) =>
         @_request "DELETE", "#{api_path}/#{id}"
 
-      @__base["create_#{singular}"] or= (opts) =>
+      @__base["create_#{singular}"] or= (opts, ...) =>
         if resource_opts.create
           opts = resource_opts.create @, opts
 
-        @_request "POST", api_path, opts
+        @_request "POST", api_path, opts, ...
 
   new: (opts) =>
     @client_id = assert opts.client_id, "missing client id"
@@ -223,6 +223,7 @@ class Stripe extends require "payments.base_client"
 
   -- NOTE: this is deprecated method, use the create_charge method part of the charges resource
   -- NOTE: how fee is renamed to application_fee
+  -- NOTE: how access_token is extracted
   -- charge a card with amount cents
   charge: (opts) =>
     {

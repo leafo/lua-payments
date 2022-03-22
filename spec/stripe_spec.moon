@@ -100,6 +100,80 @@ describe "stripe", ->
       }, ->
         stripe\get_charge "cr_cool"
 
+      -- creates basic charge
+      api_request {
+        method: "POST"
+        path: "/charges"
+        body: {
+          card: "x_card"
+          amount: "500"
+          currency: "USD"
+          application_fee: "200"
+          description: "test charge"
+          "metadata[purchase_id]": "hello world"
+        }
+      }, ->
+        stripe\create_charge {
+          card: "x_card"
+          amount: 500
+          currency: "USD"
+          application_fee: 200
+          description: "test charge"
+          "metadata[purchase_id]": "hello world"
+        }
+
+      -- creates charge with custom access token
+      api_request {
+        method: "POST"
+        path: "/charges"
+        headers: {
+          Authorization: "Basic eF9zZWxsZXJfdG9rOg=="
+        }
+        body: {
+          card: "x_card"
+          amount: "500"
+          currency: "USD"
+          application_fee: "200"
+          description: "test charge"
+        }
+      }, ->
+        stripe\create_charge {
+          card: "x_card"
+          amount: 500
+          currency: "USD"
+          application_fee: 200
+          description: "test charge"
+        }, "x_seller_tok"
+
+      -- creates charge with deprecated charge method
+      -- note: application_fee is passed as fee
+      -- note: access_token can be passed in to the opts, instead of argument
+      api_request {
+        name: "charge #ddd"
+
+
+        method: "POST"
+        path: "/charges"
+        headers: {
+          Authorization: "Basic eF9zZWxsZXJfdG9rOg=="
+        }
+        body: {
+          card: "x_card"
+          amount: "500"
+          currency: "USD"
+          application_fee: "200"
+          description: "test charge"
+        }
+      }, ->
+        stripe\charge {
+          access_token: "x_seller_tok"
+          card: "x_card"
+          amount: 500
+          currency: "USD"
+          fee: 200
+          description: "test charge"
+        }
+
     describe "accounts", ->
       api_request {
         path: "/accounts"

@@ -260,36 +260,36 @@ do
     local list_method = "list_" .. tostring(name)
     if not (resource_opts.get == false) then
       local _update_0 = list_method
-      self.__base[_update_0] = self.__base[_update_0] or function(self, opts)
-        return self:_request("GET", api_path, opts)
+      self.__base[_update_0] = self.__base[_update_0] or function(self, ...)
+        return self:_request("GET", api_path, ...)
       end
       local _update_1 = "each_" .. tostring(singular)
-      self.__base[_update_1] = self.__base[_update_1] or function(self, opts)
-        return self:_iterate_resource(self[list_method], opts)
+      self.__base[_update_1] = self.__base[_update_1] or function(self, ...)
+        return self:_iterate_resource(self[list_method], ...)
       end
       local _update_2 = "get_" .. tostring(singular)
-      self.__base[_update_2] = self.__base[_update_2] or function(self, id, opts)
-        return self:_request("GET", tostring(api_path) .. "/" .. tostring(id), opts)
+      self.__base[_update_2] = self.__base[_update_2] or function(self, id, ...)
+        return self:_request("GET", tostring(api_path) .. "/" .. tostring(id), ...)
       end
     end
     if not (resource_opts.edit == false) then
       local _update_0 = "update_" .. tostring(singular)
-      self.__base[_update_0] = self.__base[_update_0] or function(self, id, opts)
+      self.__base[_update_0] = self.__base[_update_0] or function(self, id, opts, ...)
         if resource_opts.update then
           opts = resource_opts.update(self, opts)
         end
-        return self:_request("POST", tostring(api_path) .. "/" .. tostring(id), opts)
+        return self:_request("POST", tostring(api_path) .. "/" .. tostring(id), opts, ...)
       end
       local _update_1 = "delete_" .. tostring(singular)
       self.__base[_update_1] = self.__base[_update_1] or function(self, id)
         return self:_request("DELETE", tostring(api_path) .. "/" .. tostring(id))
       end
       local _update_2 = "create_" .. tostring(singular)
-      self.__base[_update_2] = self.__base[_update_2] or function(self, opts)
+      self.__base[_update_2] = self.__base[_update_2] or function(self, opts, ...)
         if resource_opts.create then
           opts = resource_opts.create(self, opts)
         end
-        return self:_request("POST", api_path, opts)
+        return self:_request("POST", api_path, opts, ...)
       end
     end
   end
