@@ -173,7 +173,8 @@ class Stripe extends require "payments.base_client"
       res, status
 
   _iterate_resource: (method, opts) =>
-    local last_id
+    last_id = opts and opts.starting_after
+
     coroutine.wrap ->
       while true
         iteration_opts = {
@@ -183,6 +184,7 @@ class Stripe extends require "payments.base_client"
 
         if opts
           for k, v in pairs opts
+            continue if k == "starting_after" -- don't copy over initial starting point
             iteration_opts[k] = v
 
         items = assert method @, iteration_opts

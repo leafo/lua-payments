@@ -116,7 +116,7 @@ do
       end
     end,
     _iterate_resource = function(self, method, opts)
-      local last_id
+      local last_id = opts and opts.starting_after
       return coroutine.wrap(function()
         while true do
           local iteration_opts = {
@@ -125,7 +125,18 @@ do
           }
           if opts then
             for k, v in pairs(opts) do
-              iteration_opts[k] = v
+              local _continue_0 = false
+              repeat
+                if k == "starting_after" then
+                  _continue_0 = true
+                  break
+                end
+                iteration_opts[k] = v
+                _continue_0 = true
+              until true
+              if not _continue_0 then
+                break
+              end
             end
           end
           local items = assert(method(self, iteration_opts))
