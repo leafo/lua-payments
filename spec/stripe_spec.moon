@@ -1,10 +1,7 @@
 import types from require "tableshape"
-import extract_params, make_http, assert_shape from require "spec.helpers"
+import make_http, assert_shape, url_shape, query_string_shape from require "spec.helpers"
 
-import parse_query_string from require "lapis.util"
-
-assert_shape = (obj, shape) ->
-  assert shape obj
+import parse_query_string, to_json from require "lapis.util"
 
 describe "stripe", ->
   it "creates a stripe object", ->
@@ -19,6 +16,8 @@ describe "stripe", ->
     local stripe, http_requests, http_fn
     local api_response
 
+    -- create a test case where whatver is called in fn creates a single http
+    -- request that matches what is described in opts
     api_request = (opts={}, fn) ->
       method = opts.method or "GET"
       spec_name = opts.name or "#{method} #{opts.path}"
@@ -64,7 +63,15 @@ describe "stripe", ->
       api_response = nil -- reset to default
       import Stripe from require "payments.stripe"
       http_fn, http_requests = make_http (req) ->
-        req.sink api_response or '{"hello": "world"}'
+        ltn12 = require "ltn12"
+
+        -- if api_response is a function then it call it once per http request
+        -- using pump.step. Use a coroutine.wrap to output multiple responses
+        switch type(api_response)
+          when "function"
+            ltn12.pump.step api_response, req.sink
+          else
+            req.sink api_response or '{"hello": "world"}'
 
       stripe = assert Stripe {
         client_id: "client_id"
@@ -149,9 +156,6 @@ describe "stripe", ->
       -- note: application_fee is passed as fee
       -- note: access_token can be passed in to the opts, instead of argument
       api_request {
-        name: "charge #ddd"
-
-
         method: "POST"
         path: "/charges"
         headers: {
@@ -173,6 +177,163 @@ describe "stripe", ->
           fee: 200
           description: "test charge"
         }
+
+      describe "each_charge", ->
+        it "iterates through empty result", ->
+          api_response = coroutine.wrap ->
+            coroutine.yield to_json {
+              has_more: false
+              data: {}
+            }
+
+          count = 0
+          for charge in stripe\each_charge!
+            count += 1
+
+          assert.same 0, count
+
+          assert_shape http_requests, types.shape {
+            types.partial {
+              method: "GET"
+              url: url_shape {
+                scheme: "https"
+                query: query_string_shape {
+                  limit: "50"
+                }
+              }
+            }
+          }
+
+        it "iterates through result with one page with initial params", ->
+          api_response = coroutine.wrap ->
+            coroutine.yield to_json {
+              has_more: false
+              data: {
+                { id: "ch_one" }
+                { id: "ch_two" }
+              }
+            }
+
+          results = [charge for charge in stripe\each_charge limit: 5]
+
+          assert.same {
+            { id: "ch_one" }
+            { id: "ch_two" }
+          }, results
+
+          assert_shape http_requests, types.shape {
+            types.partial {
+              method: "GET"
+              url: url_shape {
+                scheme: "https"
+                query: query_string_shape {
+                  limit: "5"
+                }
+              }
+            }
+          }
+
+        it "iterates through multiple pages", ->
+          api_response = coroutine.wrap ->
+            coroutine.yield to_json {
+              has_more: true
+              data: {
+                { id: "ch_one" }
+                { id: "ch_two" }
+              }
+            }
+
+            coroutine.yield to_json {
+              has_more: false
+              data: {
+                { id: "ch_three" }
+                { id: "ch_four" }
+              }
+            }
+
+          results = [charge for charge in stripe\each_charge limit: 100]
+          assert.same {
+            { id: "ch_one" }
+            { id: "ch_two" }
+            { id: "ch_three" }
+            { id: "ch_four" }
+          }, results
+
+          assert_shape http_requests, types.shape {
+            types.partial {
+              method: "GET"
+              url: url_shape {
+                scheme: "https"
+                query: query_string_shape {
+                  limit: "100"
+                }
+              }
+            }
+
+            types.partial {
+              method: "GET"
+              url: url_shape {
+                scheme: "https"
+                query: query_string_shape {
+                  limit: "100"
+                  starting_after: "ch_two"
+                }
+              }
+            }
+
+          }
+
+        it "iterates through multiple pages with initial starting_after", ->
+          api_response = coroutine.wrap ->
+            coroutine.yield to_json {
+              has_more: true
+              data: {
+                { id: "ch_one" }
+                { id: "ch_two" }
+              }
+            }
+
+            coroutine.yield to_json {
+              has_more: false
+              data: {
+                { id: "ch_three" }
+                { id: "ch_four" }
+              }
+            }
+
+          results = [charge for charge in stripe\each_charge starting_after: "ch_zero"]
+          assert.same {
+            { id: "ch_one" }
+            { id: "ch_two" }
+            { id: "ch_three" }
+            { id: "ch_four" }
+          }, results
+
+          assert_shape http_requests, types.shape {
+            types.partial {
+              method: "GET"
+              url: url_shape {
+                scheme: "https"
+                query: query_string_shape {
+                  limit: "50"
+                  starting_after: "ch_zero"
+                }
+              }
+            }
+
+            types.partial {
+              method: "GET"
+              url: url_shape {
+                scheme: "https"
+                query: query_string_shape {
+                  limit: "50"
+                  starting_after: "ch_two"
+                }
+              }
+            }
+
+          }
+
 
     describe "accounts", ->
       api_request {
