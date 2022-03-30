@@ -23,8 +23,6 @@ The following APIs are supported:
 
 ### PayPal Rest API
 
-> **Note:** This currently uses the PayPal V1 REST API. Pull requests welcome for V2
-
 Create the API client:
 
 ```lua
@@ -69,6 +67,16 @@ local res, status = client:create_payment({
   }
 })
 ```
+
+
+**Note:** This currently uses the PayPal V1 REST API. You can force calls to go
+to V2 by adjusting the following field on your client instance:
+
+```lua
+client.api_version = "v2"
+client:create_checkout_order({...})
+```
+
 
 ### Stripe
 
