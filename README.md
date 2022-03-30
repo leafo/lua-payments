@@ -23,6 +23,8 @@ The following APIs are supported:
 
 ### PayPal Rest API
 
+> **Note:** This currently uses the PayPal V1 REST API. Pull requests welcome for V2
+
 Create the API client:
 
 ```lua
@@ -39,6 +41,33 @@ Fetch some data:
 
 ```lua
 local payments = client:payment_resources()
+```
+
+Create a new payment:
+
+
+```lua
+local res, status = client:create_payment({
+  intent = "sale",
+  payer = {
+    payment_method: "paypal"
+  },
+  transactions = {
+    {
+      description = "My thinger",
+      invoice_number = "P-1291829281",
+
+      amount = {
+        total = "5.99"
+        currency = "USD"
+      }
+    }
+  },
+  redirect_urls = {
+    return_url = "http://example.com/confirm-payment",
+    cancel_url = "http://example.com/cancel-payment"
+  }
+})
 ```
 
 ### Stripe
