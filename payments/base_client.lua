@@ -8,7 +8,7 @@ do
           if ngx and ngx.socket then
             return "lapis.nginx.http"
           else
-            return "ssl.https"
+            return "socket.http"
           end
         end)()
         if type(self.http_provider) == "function" then

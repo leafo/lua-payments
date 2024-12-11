@@ -9,7 +9,7 @@ class BaseClient
       @http_provider or= if ngx and ngx.socket
         "lapis.nginx.http"
       else
-        "ssl.https"
+        "socket.http"
 
       @_http = if type(@http_provider) == "function"
         @http_provider!
