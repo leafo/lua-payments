@@ -296,6 +296,9 @@ class Stripe extends require "payments.base_client"
   create_checkout_session: (opts) =>
     @_request "POST", "checkout/sessions", opts
 
+  create_payment_intent: (opts) =>
+    @_request "POST", "payment_intents", opts
+
   -- this appears to be an undocumented api: https://stripe.com/docs/search-beta/api-details
   search: (...) =>
     @_request "GET", "search", ...

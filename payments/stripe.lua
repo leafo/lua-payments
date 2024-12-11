@@ -227,6 +227,9 @@ do
     create_checkout_session = function(self, opts)
       return self:_request("POST", "checkout/sessions", opts)
     end,
+    create_payment_intent = function(self, opts)
+      return self:_request("POST", "payment_intents", opts)
+    end,
     search = function(self, ...)
       return self:_request("GET", "search", ...)
     end
