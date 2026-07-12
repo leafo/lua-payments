@@ -377,6 +377,265 @@ describe "stripe", ->
           country: "ARCTIC"
         }
 
+    describe "refunds", ->
+      api_request {
+        method: "POST"
+        path: "/refunds"
+        body: {
+          charge: "ch_cool"
+        }
+      }, ->
+        stripe\refund_charge "ch_cool"
+
+      api_request {
+        method: "POST"
+        path: "/refunds"
+        body: {
+          charge: "ch_cool"
+          amount: "250"
+          reason: "requested_by_customer"
+        }
+      }, ->
+        stripe\refund_charge "ch_cool", {
+          amount: 250
+          reason: "requested_by_customer"
+        }
+
+      api_request {
+        method: "POST"
+        path: "/refunds"
+        body: {
+          payment_intent: "pi_cool"
+          amount: "1000"
+        }
+      }, ->
+        stripe\refund_payment_intent "pi_cool", {
+          amount: 1000
+        }
+
+    describe "payment_intents", ->
+      api_request {
+        path: "/payment_intents?limit=20"
+      }, ->
+        stripe\list_payment_intents {
+          limit: 20
+        }
+
+      api_request {
+        path: "/payment_intents/pi_cool"
+      }, ->
+        stripe\get_payment_intent "pi_cool"
+
+      api_request {
+        path: "/payment_intents/pi_cool?expand%5b%5d=latest_charge"
+      }, ->
+        stripe\get_payment_intent "pi_cool", {
+          "expand[]": "latest_charge"
+        }
+
+      api_request {
+        method: "POST"
+        path: "/payment_intents"
+        body: {
+          amount: "500"
+          currency: "USD"
+          confirm: "true"
+          confirmation_token: "ctoken_123"
+          application_fee_amount: "50"
+          "metadata[purchase_id]": "1234"
+        }
+      }, ->
+        stripe\create_payment_intent {
+          amount: 500
+          currency: "USD"
+          confirm: true
+          confirmation_token: "ctoken_123"
+          application_fee_amount: 50
+          "metadata[purchase_id]": "1234"
+        }
+
+      api_request {
+        method: "POST"
+        path: "/payment_intents/pi_cool"
+        body: {
+          "metadata[purchase_id]": "1234"
+        }
+      }, ->
+        stripe\update_payment_intent "pi_cool", {
+          "metadata[purchase_id]": "1234"
+        }
+
+      api_request {
+        method: "POST"
+        path: "/payment_intents/pi_cool/confirm"
+        body: {
+          confirmation_token: "ctoken_123"
+        }
+      }, ->
+        stripe\confirm_payment_intent "pi_cool", {
+          confirmation_token: "ctoken_123"
+        }
+
+      api_request {
+        method: "POST"
+        path: "/payment_intents/pi_cool/capture"
+      }, ->
+        stripe\capture_payment_intent "pi_cool"
+
+      api_request {
+        method: "POST"
+        path: "/payment_intents/pi_cool/cancel"
+      }, ->
+        stripe\cancel_payment_intent "pi_cool"
+
+      api_request {
+        method: "POST"
+        path: "/payment_intents/pi_cool/cancel"
+        body: {
+          cancellation_reason: "abandoned"
+        }
+      }, ->
+        stripe\cancel_payment_intent "pi_cool", {
+          cancellation_reason: "abandoned"
+        }
+
+      -- direct charge on a connected account
+      api_request {
+        method: "POST"
+        path: "/payment_intents"
+        headers: {
+          "Stripe-Account": "acct_seller"
+        }
+        body: {
+          amount: "500"
+          currency: "USD"
+          application_fee_amount: "50"
+        }
+      }, ->
+        stripe\for_account_id("acct_seller")\create_payment_intent {
+          amount: 500
+          currency: "USD"
+          application_fee_amount: 50
+        }
+
+    describe "setup_intents", ->
+      api_request {
+        path: "/setup_intents?limit=10"
+      }, ->
+        stripe\list_setup_intents {
+          limit: 10
+        }
+
+      api_request {
+        path: "/setup_intents/seti_cool"
+      }, ->
+        stripe\get_setup_intent "seti_cool"
+
+      api_request {
+        method: "POST"
+        path: "/setup_intents"
+        body: {
+          customer: "cus_123"
+          usage: "off_session"
+        }
+      }, ->
+        stripe\create_setup_intent {
+          customer: "cus_123"
+          usage: "off_session"
+        }
+
+      api_request {
+        method: "POST"
+        path: "/setup_intents/seti_cool"
+        body: {
+          "metadata[user_id]": "99"
+        }
+      }, ->
+        stripe\update_setup_intent "seti_cool", {
+          "metadata[user_id]": "99"
+        }
+
+      api_request {
+        method: "POST"
+        path: "/setup_intents/seti_cool/confirm"
+        body: {
+          confirmation_token: "ctoken_123"
+        }
+      }, ->
+        stripe\confirm_setup_intent "seti_cool", {
+          confirmation_token: "ctoken_123"
+        }
+
+      api_request {
+        method: "POST"
+        path: "/setup_intents/seti_cool/cancel"
+      }, ->
+        stripe\cancel_setup_intent "seti_cool"
+
+    describe "payment_methods", ->
+      api_request {
+        path: "/payment_methods/pm_cool"
+      }, ->
+        stripe\get_payment_method "pm_cool"
+
+      api_request {
+        method: "POST"
+        path: "/payment_methods/pm_cool"
+        body: {
+          "billing_details[name]": "leafo"
+        }
+      }, ->
+        stripe\update_payment_method "pm_cool", {
+          "billing_details[name]": "leafo"
+        }
+
+      api_request {
+        path: "/customers/cus_123/payment_methods?type=card"
+      }, ->
+        stripe\list_customer_payment_methods "cus_123", {
+          type: "card"
+        }
+
+      api_request {
+        method: "POST"
+        path: "/payment_methods/pm_cool/attach"
+        body: {
+          customer: "cus_123"
+        }
+      }, ->
+        stripe\attach_payment_method "pm_cool", "cus_123"
+
+      api_request {
+        method: "POST"
+        path: "/payment_methods/pm_cool/detach"
+      }, ->
+        stripe\detach_payment_method "pm_cool"
+
+    describe "confirmation_tokens", ->
+      api_request {
+        path: "/confirmation_tokens/ctoken_123"
+      }, ->
+        stripe\get_confirmation_token "ctoken_123"
+
+    describe "checkout_sessions", ->
+      api_request {
+        method: "POST"
+        path: "/checkout/sessions"
+        body: {
+          mode: "payment"
+          success_url: "https://itch.io/success"
+        }
+      }, ->
+        stripe\create_checkout_session {
+          mode: "payment"
+          success_url: "https://itch.io/success"
+        }
+
+      api_request {
+        path: "/checkout/sessions/cs_cool"
+      }, ->
+        stripe\get_checkout_session "cs_cool"
+
     describe "balance_transactions", ->
       api_request {
         method: "GET"

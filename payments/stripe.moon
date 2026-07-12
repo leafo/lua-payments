@@ -257,10 +257,23 @@ class Stripe extends require "payments.base_client"
   get_token: (token_id) =>
     @_request "GET", "tokens/#{token_id}"
 
-  refund_charge: (charge_id) =>
-    @_request "POST", "refunds", {
-      charge: charge_id
-    }
+  refund_charge: (charge_id, opts) =>
+    params = { charge: charge_id }
+
+    if opts
+      for k, v in pairs opts
+        params[k] = v
+
+    @_request "POST", "refunds", params
+
+  refund_payment_intent: (payment_intent_id, opts) =>
+    params = { payment_intent: payment_intent_id }
+
+    if opts
+      for k, v in pairs opts
+        params[k] = v
+
+    @_request "POST", "refunds", params
 
   mark_fraud: (charge_id) =>
     @_request "POST", "charges/#{charge_id}", {
@@ -296,8 +309,71 @@ class Stripe extends require "payments.base_client"
   create_checkout_session: (opts) =>
     @_request "POST", "checkout/sessions", opts
 
-  create_payment_intent: (opts) =>
-    @_request "POST", "payment_intents", opts
+  get_checkout_session: (session_id, opts) =>
+    @_request "GET", "checkout/sessions/#{session_id}", opts
+
+  -- https://stripe.com/docs/api/payment_intents
+  list_payment_intents: (opts, ...) =>
+    @_request "GET", "payment_intents", opts, ...
+
+  get_payment_intent: (payment_intent_id, opts, ...) =>
+    @_request "GET", "payment_intents/#{payment_intent_id}", opts, ...
+
+  create_payment_intent: (opts, ...) =>
+    @_request "POST", "payment_intents", opts, ...
+
+  update_payment_intent: (payment_intent_id, opts, ...) =>
+    @_request "POST", "payment_intents/#{payment_intent_id}", opts, ...
+
+  confirm_payment_intent: (payment_intent_id, opts, ...) =>
+    @_request "POST", "payment_intents/#{payment_intent_id}/confirm", opts, ...
+
+  capture_payment_intent: (payment_intent_id, opts, ...) =>
+    @_request "POST", "payment_intents/#{payment_intent_id}/capture", opts, ...
+
+  cancel_payment_intent: (payment_intent_id, opts, ...) =>
+    @_request "POST", "payment_intents/#{payment_intent_id}/cancel", opts, ...
+
+  -- https://stripe.com/docs/api/setup_intents
+  list_setup_intents: (opts, ...) =>
+    @_request "GET", "setup_intents", opts, ...
+
+  get_setup_intent: (setup_intent_id, opts, ...) =>
+    @_request "GET", "setup_intents/#{setup_intent_id}", opts, ...
+
+  create_setup_intent: (opts, ...) =>
+    @_request "POST", "setup_intents", opts, ...
+
+  update_setup_intent: (setup_intent_id, opts, ...) =>
+    @_request "POST", "setup_intents/#{setup_intent_id}", opts, ...
+
+  confirm_setup_intent: (setup_intent_id, opts, ...) =>
+    @_request "POST", "setup_intents/#{setup_intent_id}/confirm", opts, ...
+
+  cancel_setup_intent: (setup_intent_id, opts, ...) =>
+    @_request "POST", "setup_intents/#{setup_intent_id}/cancel", opts, ...
+
+  -- https://stripe.com/docs/api/payment_methods
+  get_payment_method: (payment_method_id, opts, ...) =>
+    @_request "GET", "payment_methods/#{payment_method_id}", opts, ...
+
+  update_payment_method: (payment_method_id, opts, ...) =>
+    @_request "POST", "payment_methods/#{payment_method_id}", opts, ...
+
+  list_customer_payment_methods: (customer_id, opts, ...) =>
+    @_request "GET", "customers/#{customer_id}/payment_methods", opts, ...
+
+  attach_payment_method: (payment_method_id, customer_id, ...) =>
+    @_request "POST", "payment_methods/#{payment_method_id}/attach", {
+      customer: customer_id
+    }, ...
+
+  detach_payment_method: (payment_method_id, ...) =>
+    @_request "POST", "payment_methods/#{payment_method_id}/detach", nil, ...
+
+  -- https://stripe.com/docs/api/confirmation_tokens
+  get_confirmation_token: (confirmation_token_id, opts, ...) =>
+    @_request "GET", "confirmation_tokens/#{confirmation_token_id}", opts, ...
 
   -- this appears to be an undocumented api: https://stripe.com/docs/search-beta/api-details
   search: (...) =>

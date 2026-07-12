@@ -188,10 +188,27 @@ do
     get_token = function(self, token_id)
       return self:_request("GET", "tokens/" .. tostring(token_id))
     end,
-    refund_charge = function(self, charge_id)
-      return self:_request("POST", "refunds", {
+    refund_charge = function(self, charge_id, opts)
+      local params = {
         charge = charge_id
-      })
+      }
+      if opts then
+        for k, v in pairs(opts) do
+          params[k] = v
+        end
+      end
+      return self:_request("POST", "refunds", params)
+    end,
+    refund_payment_intent = function(self, payment_intent_id, opts)
+      local params = {
+        payment_intent = payment_intent_id
+      }
+      if opts then
+        for k, v in pairs(opts) do
+          params[k] = v
+        end
+      end
+      return self:_request("POST", "refunds", params)
     end,
     mark_fraud = function(self, charge_id)
       return self:_request("POST", "charges/" .. tostring(charge_id), {
@@ -227,8 +244,67 @@ do
     create_checkout_session = function(self, opts)
       return self:_request("POST", "checkout/sessions", opts)
     end,
-    create_payment_intent = function(self, opts)
-      return self:_request("POST", "payment_intents", opts)
+    get_checkout_session = function(self, session_id, opts)
+      return self:_request("GET", "checkout/sessions/" .. tostring(session_id), opts)
+    end,
+    list_payment_intents = function(self, opts, ...)
+      return self:_request("GET", "payment_intents", opts, ...)
+    end,
+    get_payment_intent = function(self, payment_intent_id, opts, ...)
+      return self:_request("GET", "payment_intents/" .. tostring(payment_intent_id), opts, ...)
+    end,
+    create_payment_intent = function(self, opts, ...)
+      return self:_request("POST", "payment_intents", opts, ...)
+    end,
+    update_payment_intent = function(self, payment_intent_id, opts, ...)
+      return self:_request("POST", "payment_intents/" .. tostring(payment_intent_id), opts, ...)
+    end,
+    confirm_payment_intent = function(self, payment_intent_id, opts, ...)
+      return self:_request("POST", "payment_intents/" .. tostring(payment_intent_id) .. "/confirm", opts, ...)
+    end,
+    capture_payment_intent = function(self, payment_intent_id, opts, ...)
+      return self:_request("POST", "payment_intents/" .. tostring(payment_intent_id) .. "/capture", opts, ...)
+    end,
+    cancel_payment_intent = function(self, payment_intent_id, opts, ...)
+      return self:_request("POST", "payment_intents/" .. tostring(payment_intent_id) .. "/cancel", opts, ...)
+    end,
+    list_setup_intents = function(self, opts, ...)
+      return self:_request("GET", "setup_intents", opts, ...)
+    end,
+    get_setup_intent = function(self, setup_intent_id, opts, ...)
+      return self:_request("GET", "setup_intents/" .. tostring(setup_intent_id), opts, ...)
+    end,
+    create_setup_intent = function(self, opts, ...)
+      return self:_request("POST", "setup_intents", opts, ...)
+    end,
+    update_setup_intent = function(self, setup_intent_id, opts, ...)
+      return self:_request("POST", "setup_intents/" .. tostring(setup_intent_id), opts, ...)
+    end,
+    confirm_setup_intent = function(self, setup_intent_id, opts, ...)
+      return self:_request("POST", "setup_intents/" .. tostring(setup_intent_id) .. "/confirm", opts, ...)
+    end,
+    cancel_setup_intent = function(self, setup_intent_id, opts, ...)
+      return self:_request("POST", "setup_intents/" .. tostring(setup_intent_id) .. "/cancel", opts, ...)
+    end,
+    get_payment_method = function(self, payment_method_id, opts, ...)
+      return self:_request("GET", "payment_methods/" .. tostring(payment_method_id), opts, ...)
+    end,
+    update_payment_method = function(self, payment_method_id, opts, ...)
+      return self:_request("POST", "payment_methods/" .. tostring(payment_method_id), opts, ...)
+    end,
+    list_customer_payment_methods = function(self, customer_id, opts, ...)
+      return self:_request("GET", "customers/" .. tostring(customer_id) .. "/payment_methods", opts, ...)
+    end,
+    attach_payment_method = function(self, payment_method_id, customer_id, ...)
+      return self:_request("POST", "payment_methods/" .. tostring(payment_method_id) .. "/attach", {
+        customer = customer_id
+      }, ...)
+    end,
+    detach_payment_method = function(self, payment_method_id, ...)
+      return self:_request("POST", "payment_methods/" .. tostring(payment_method_id) .. "/detach", nil, ...)
+    end,
+    get_confirmation_token = function(self, confirmation_token_id, opts, ...)
+      return self:_request("GET", "confirmation_tokens/" .. tostring(confirmation_token_id), opts, ...)
     end,
     search = function(self, ...)
       return self:_request("GET", "search", ...)
