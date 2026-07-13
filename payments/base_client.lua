@@ -6,7 +6,7 @@ do
       if not (self._http) then
         self.http_provider = self.http_provider or (function()
           if ngx and ngx.socket then
-            return "lapis.nginx.http"
+            return "lapis.http"
           else
             return "socket.http"
           end

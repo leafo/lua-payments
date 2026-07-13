@@ -7,7 +7,7 @@ class BaseClient
     unless @_http
       -- for cqeuues "http.compat.socket"
       @http_provider or= if ngx and ngx.socket
-        "lapis.nginx.http"
+        "lapis.http"
       else
         "socket.http"
 
